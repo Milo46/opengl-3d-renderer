@@ -10,3 +10,6 @@
 [submodule "vendor/imgui"]
 	path = vendor/imgui
 	url = https://github.com/milo46/imgui
+[submodule "vendor/stb"]
+	path = vendor/stb
+	url = https://github.com/nothings/stb
