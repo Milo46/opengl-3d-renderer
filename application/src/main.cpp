@@ -28,27 +28,6 @@ int main(int argc, char** argv)
     }
     glfwSwapInterval(1);
 
-    GLuint FBO{ 0u };
-    glGenFramebuffers(1, &FBO);
-    glBindFramebuffer(GL_FRAMEBUFFER, FBO);
-
-    GLuint texture{ 0u };
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 800u, 600u, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
-
-    GLuint RBO{ 0u };
-    glGenRenderbuffers(1, &RBO);
-    glBindRenderbuffer(GL_RENDERBUFFER, RBO);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 800u, 600u);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, RBO);
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-        spdlog::critical("Framebuffer is not complete!");
-    glBindFramebuffer(GL_FRAMEBUFFER, 0u);
-
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io{ ImGui::GetIO() };
@@ -72,15 +51,39 @@ int main(int argc, char** argv)
         glfwPollEvents();
         glfwSwapBuffers(window);
 
-        // glBindFramebuffer(GL_FRAMEBUFFER, FBO);
-        // glEnable(GL_DEPTH_TEST);
-
         glClearColor(0.2f, 0.4f, 0.6f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
+
+        ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar |
+            ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+            ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus |
+            ImGuiWindowFlags_NoBackground;
+
+        const auto viewport{ ImGui::GetMainViewport() };
+        ImGui::SetNextWindowPos(viewport->WorkPos);
+        ImGui::SetNextWindowSize(viewport->WorkSize);
+        ImGui::SetNextWindowViewport(viewport->ID);
+
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+        ImGui::Begin("DockingWindow", nullptr, windowFlags);
+        ImGui::PopStyleVar(3);
+
+        ImGuiID dockspaceID{ ImGui::GetID("WindowDockspace") };
+        ImGui::DockSpace(dockspaceID, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_PassthruCentralNode);
+        ImGui::End();
+
+        ImGui::Begin("Scene");
+
+        ImVec2 viewportPanelSize{ ImGui::GetContentRegionAvail() };
+        ImGui::Image(0u, viewportPanelSize, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+
+        ImGui::End();
 
         ImGui::ShowDemoWindow();
 
@@ -118,9 +121,6 @@ int main(int argc, char** argv)
             glfwMakeContextCurrent(contextBackup);
         }
     }
-
-    glBindFramebuffer(GL_FRAMEBUFFER, 0u);
-    glDeleteFramebuffers(1, &FBO);
 
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();

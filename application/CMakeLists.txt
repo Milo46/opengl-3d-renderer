@@ -6,8 +6,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_executable(${PROJECT_NAME}
     src/ImGui/ImGuiBuild.hpp
 
-    src/Core/EntryPoint.hpp
-    src/Core/Source.cpp
+    # src/Core/EntryPoint.hpp
+    # src/Core/Source.cpp
+
+    src/main.cpp
 )
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
