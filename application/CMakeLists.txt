@@ -6,7 +6,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_executable(${PROJECT_NAME}
     src/ImGui/ImGuiBuild.hpp
 
-    src/main.cpp
+    src/Core/EntryPoint.hpp
+    src/Core/Source.cpp
 )
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
@@ -23,4 +24,6 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     ${CMAKE_SOURCE_DIR}/vendor/imgui
     ${CMAKE_SOURCE_DIR}/vendor/spdlog/include
     ${CMAKE_SOURCE_DIR}/vendor/stb
+
+    ${PROJECT_SOURCE_DIR}/src
 )
