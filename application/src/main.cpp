@@ -3,6 +3,8 @@
 
 #include <spdlog/spdlog.h>
 
+#include <filesystem>
+
 #include "ImGui/ImGuiBuild.hpp"
 
 static void GLFWErrorCallback(int error, const char* desc)
@@ -12,6 +14,9 @@ static void GLFWErrorCallback(int error, const char* desc)
 
 int main(int argc, char** argv)
 {
+    const auto rootFilepath{ std::filesystem::path{ __FILE__ }.append("../../") };
+    std::filesystem::current_path(rootFilepath);
+
     glfwSetErrorCallback(GLFWErrorCallback);
     if (!glfwInit()) return EXIT_FAILURE;
 
