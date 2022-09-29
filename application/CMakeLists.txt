@@ -6,6 +6,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_executable(${PROJECT_NAME}
     src/ImGui/ImGuiBuild.hpp
 
+    src/Renderer/RendererCore.hpp
+    src/Renderer/Bindable.hpp
+    # src/Renderer/Shader.hpp
+    src/Renderer/Shader.cpp
+
     # src/Core/EntryPoint.hpp
     # src/Core/Source.cpp
 
