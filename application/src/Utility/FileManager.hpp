@@ -5,6 +5,8 @@
 
 class FileManager
 {
+    friend class FileManagerHelper;
+
 public:
     static const std::string c_NoContent;
 
@@ -12,9 +14,13 @@ public:
     static std::optional<std::string> ReadContent(const std::string_view filepath) noexcept;
 
 public:
-    explicit FileManager() = default;
-    explicit FileManager(const std::string_view filepath, const bool load = true);
+    FileManager() = default;
+    FileManager(const std::string_view filepath, const bool load = true);
 
+    FileManager(const FileManager& other);
+    FileManager& operator=(const FileManager& other) noexcept;
+
+public:
     bool Load() noexcept;
     bool Load(const std::string_view filepath, const bool revertOnFail = true) noexcept;
 
@@ -38,4 +44,14 @@ private:
     std::string m_Path;
     std::string m_Content;
     bool m_Loaded;
+};
+
+class FileManagerHelper
+{
+public:
+    static FileManager CreateFromContent(const std::string& content) noexcept;
+
+public:
+    FileManagerHelper()  = delete;
+    ~FileManagerHelper() = delete;
 };

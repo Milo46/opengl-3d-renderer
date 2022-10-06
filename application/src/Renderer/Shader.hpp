@@ -3,10 +3,17 @@
 #include "RendererCore.hpp"
 #include "Bindable.hpp"
 
-#include <string>
+#include <unordered_map>
 #include <xtr1common>
 #include <filesystem>
-#include <unordered_map>
+#include <memory>
+#include <string>
+#include <array>
+
+// #include <glm/glm.hpp>
+// #include <glm/gtc/type_ptr.hpp>
+
+#include "Utility/FileManager.hpp"
 
 RENDERER_CODE_BEGIN
 
@@ -26,39 +33,63 @@ inline constexpr auto GetShaderTypeCount() noexcept
 
 struct ShaderProps
 {
-    const std::unordered_map<ShaderType, std::string> Filepaths;
-    const bool CompileAndLink{ true };
+    const std::unordered_map<ShaderType, FileManager> Sources{};
+    const bool Initialize{ false };
 };
 
-class Shader : public Bindable
+struct Shader
+    : public RendererElement,
+      public Bindable
 {
+    friend struct ShaderDataExtractor;
+
 public:
     static constexpr auto c_ShaderCount{ GetShaderTypeCount<std::size_t>() };
-    static constexpr std::int32_t c_InvalidUniformLocation{ -1 };
 
 public:
-    bool LoadFromText(const ShaderType type, const std::string_view source, bool recompile = false);
-    bool LoadFromFile(const ShaderType type, const std::string_view filepath, bool recompile = false);
+    inline static auto Create(const ShaderProps& props) noexcept
+    {
+        return std::make_shared<Shader>(props);
+    }
 
-    bool Compile();
-    bool Link();
+public:
+    explicit Shader(const ShaderProps& props) noexcept;
+    ~Shader() noexcept;
+
+    bool LoadSource(const ShaderType type, const std::string& source) noexcept;
+    bool LoadSource(const ShaderType type, FileManager& source) noexcept;
+    bool LoadSource(const ShaderType type, const FileManager& source) noexcept;
+
+    bool Compile() noexcept;
+    bool Link() noexcept;
+
+public:
+    virtual void Bind() const override;
+    virtual void Unbind() const override;
 
 private:
-    explicit Shader(const ShaderProps& props);
-    virtual ~Shader();
+    bool InternalLoadSource(const ShaderType type, const FileManager& source) noexcept;
+    bool InternalCompileShader(const std::size_t index);
 
 private:
-    std::string LoadShaderInfoLog(const RendererID id) const;
-    std::string LoadProgramInfoLog(const RendererID id) const;
+    std::array<RendererID, Shader::c_ShaderCount> m_Handles{ 0u };
+    std::array<FileManager, Shader::c_ShaderCount> m_Sources{};
+    std::array<bool, Shader::c_ShaderCount> m_Compiled{ false };
+};
 
-    bool CompileShader(const RendererID id);
-    bool CompielShader(const ShaderType type);
+struct ShaderData
+{
+    const RendererID ID;
+    const std::string Type;
+    const FileManager Source;
+};
 
-private:
-    RendererID m_RendererID{ 0u };
-    RendererID m_Shaders[Shader::c_ShaderCount]{ 0u };
+struct ShaderDataExtractor
+{
+    std::vector<ShaderData> ShaderData{};
+    const std::shared_ptr<Shader>& Ref;
 
-    std::string m_InfoLog{};
+    explicit ShaderDataExtractor(const std::shared_ptr<Shader>& shader) noexcept;
 };
 
 RENDERER_CODE_END

@@ -10,6 +10,7 @@ std::optional<std::string> FileManager::ReadContent(const std::string_view filep
     const std::ifstream file{ filepath.data() };
 
     static std::stringstream buffer{};
+    buffer.clear();
     buffer.str({});
     buffer << file.rdbuf();
 
@@ -17,11 +18,26 @@ std::optional<std::string> FileManager::ReadContent(const std::string_view filep
     return !content.empty() ? std::make_optional(content) : std::nullopt;
 }
 
+FileManager::FileManager(const FileManager& other)
+    : m_Path{ other.m_Path },
+      m_Content{ other.m_Content },
+      m_Loaded{ other.m_Loaded }
+{}
+
 FileManager::FileManager(const std::string_view filepath, const bool load)
     : m_Path{ filepath },
       m_Content{ load ? FileManager::InternalRead(filepath) : "" },
       m_Loaded{ load }
 {}
+
+FileManager& FileManager::operator=(const FileManager& other) noexcept
+{
+    m_Path = other.m_Path;
+    m_Content = other.m_Content;
+    m_Loaded = other.m_Loaded;
+
+    return *this;
+}
 
 bool FileManager::Load() noexcept
 {
@@ -63,4 +79,13 @@ bool FileManager::Load(const std::string_view filepath, const bool revertOnFail)
     }
 
     return m_Loaded;
+}
+
+FileManager FileManagerHelper::CreateFromContent(const std::string& content) noexcept
+{
+    FileManager fileInstance{};
+    fileInstance.m_Content = content;
+    fileInstance.m_Loaded  = true;
+
+    return fileInstance;
 }

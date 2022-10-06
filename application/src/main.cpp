@@ -2,10 +2,10 @@
 #include <glfw/glfw3.h>
 
 #include <spdlog/spdlog.h>
-
 #include <filesystem>
 
 #include "ImGui/ImGuiBuild.hpp"
+#include "Renderer/Shader.hpp"
 
 static void GLFWErrorCallback(int error, const char* desc)
 {
@@ -23,8 +23,6 @@ int main(int argc, char** argv)
     auto window{ glfwCreateWindow(800u, 600u, "Dear ImGui OpenGL", nullptr, nullptr) };
     if (!window) return EXIT_FAILURE;
 
-    spdlog::info("{}", (bool)window);
-
     glfwMakeContextCurrent(window);
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
@@ -32,6 +30,20 @@ int main(int argc, char** argv)
         return false;
     }
     glfwSwapInterval(1);
+
+    // Allow debug logs to be visible.
+    spdlog::set_level(spdlog::level::debug);
+    
+    auto customShader{ Renderer::Shader::Create({
+        .Sources = {
+            { Renderer::ShaderType::Vertex,   { "assets/shaders/vertex.glsl",   }, },
+            { Renderer::ShaderType::Fragment, { "assets/shaders/fragment.glsl", }, },
+        },
+    }) };
+    spdlog::info("Custom shader compilation result: {}", customShader->Compile());
+    spdlog::info("Custom shader linking result: {}", customShader->Link());
+
+    const auto customShaderData{ Renderer::ShaderDataExtractor{ customShader } };
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -83,44 +95,56 @@ int main(int argc, char** argv)
         ImGui::DockSpace(dockspaceID, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_PassthruCentralNode);
         ImGui::End();
 
+        ImGui::ShowDemoWindow();
+
         ImGui::Begin("Scene");
 
-        ImVec2 viewportPanelSize{ ImGui::GetContentRegionAvail() };
-        ImGui::Image(0u, viewportPanelSize, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+        const auto& shaderInfo{ customShaderData.ShaderData };
+
+        static std::size_t contentIndex{ 0u };
+        static bool openPopup{ false };
+
+        ImGuiTableFlags tableFlags = ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableRowFlags_Headers;
+        if (ImGui::BeginTable("Program Shader Sources", 3, tableFlags))
+        {
+            ImGui::TableSetupColumn("Shader Type");
+            ImGui::TableSetupColumn("Source Filepath");
+            ImGui::TableSetupColumn("Preview");
+            ImGui::TableHeadersRow();
+
+            for (int i{ 0 }; i < shaderInfo.size(); ++i)
+            {
+                ImGui::TableNextRow();
+                ImGui::TableSetColumnIndex(0);
+                ImGui::Text("%s", shaderInfo[i].Type.data());
+                ImGui::TableSetColumnIndex(1);
+                ImGui::Text("%s", shaderInfo[i].Source.GetPath().data());
+                ImGui::TableSetColumnIndex(2);
+                if (ImGui::Button(std::string{ "Show source code!##" + std::to_string(i) }.data()))
+                {
+                    ImGui::OpenPopup("Source Code");
+                    contentIndex = i;
+                    openPopup = true;
+                }
+            }
+
+            if (ImGui::BeginPopupModal("Source Code", &openPopup))
+            {
+                ImGui::Text("%s", shaderInfo[contentIndex].Source.GetContent().data());
+                ImGui::EndPopup();
+            }
+
+            ImGui::EndTable();
+        }
 
         ImGui::End();
 
-        ImGui::ShowDemoWindow();
-
-        // static bool active{ true };
-        // if (active)
-        // {
-        // ImGui::Begin("Hello Window", &active, ImGuiWindowFlags_MenuBar);
-        // if (ImGui::BeginMenuBar())
-        // {
-        //     if (ImGui::BeginMenu("File"))
-        //     {
-        //         if (ImGui::MenuItem("Open..", "Ctrl+O")) {}
-        //         if (ImGui::MenuItem("Save", "Ctrl+S")) {}
-        //         if (ImGui::MenuItem("Close", "Ctrl+W")) { active = false; }
-        //         ImGui::EndMenu();
-        //     }
-        //     ImGui::EndMenuBar();
-        // }
-        // ImGui::End();
-        // }
-
-        // ImGui::Begin("Second Window");
-        // ImGui::Text("Wow");
-        // ImGui::End();
-
         ImGui::Render();
-
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
         {
-            auto contextBackup{ glfwGetCurrentContext() };
+            const auto contextBackup{ glfwGetCurrentContext() };
             ImGui::UpdatePlatformWindows();
             ImGui::RenderPlatformWindowsDefault();
             glfwMakeContextCurrent(contextBackup);

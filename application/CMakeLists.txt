@@ -4,11 +4,17 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_executable(${PROJECT_NAME}
+    src/Utility/FileManager.hpp
+    src/Utility/FileManager.cpp
+
     src/ImGui/ImGuiBuild.hpp
 
+    private/Renderer/ShaderInternal.hpp
+    private/Renderer/ShaderInternal.cpp
     src/Renderer/RendererCore.hpp
+    src/Renderer/RendererCore.cpp
     src/Renderer/Bindable.hpp
-    # src/Renderer/Shader.hpp
+    src/Renderer/Shader.hpp
     src/Renderer/Shader.cpp
 
     # src/Core/EntryPoint.hpp

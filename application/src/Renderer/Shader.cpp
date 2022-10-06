@@ -1,235 +1,139 @@
 #include "Shader.hpp"
 
+#include "../private/Renderer/ShaderInternal.hpp"
+
 #include <spdlog/spdlog.h>
-
-#include <optional>
-#include <fstream>
-#include <sstream>
-#include <array>
-#include <map>
-
-/*
-    TODO: - test if all internal and opengl static functions are exception safe!
-*/
 
 RENDERER_CODE_BEGIN
 
-// Move those macros somewhere else!!
-#define break_if(_Expression) if (_Expression) break
-#define continue_if(_Expression) if (_Expression) continue
-
-namespace Internal
+Shader::Shader(const ShaderProps& props) noexcept
+    : RendererElement{ ::Renderer::c_EmptyID }
 {
-    constexpr auto c_InvalidGLShader{ static_cast<RendererEnum>(-1) };
-    constexpr auto c_InvalidGLShaderString{ static_cast<const char*>("InvalidShader") };
-
-    constexpr static inline std::size_t ShaderTypeIndex(const ShaderType type) noexcept
-    {
-        return static_cast<std::size_t>(type);
-    }
-
-    constexpr static inline bool IsShaderTypeValid(const ShaderType type) noexcept
-    {
-        return ShaderType::None < type && type < ShaderType::EnumEnd;
-    }
-
-    constexpr static RendererEnum GetGLShaderType(const ShaderType type) noexcept
-    {
-        const std::array<RendererEnum, static_cast<std::size_t>(ShaderType::EnumEnd)> glShaderNames{
-            GL_VERTEX_SHADER,          // <- ShaderType::Vertex
-            GL_FRAGMENT_SHADER,        // <- ShaderType::Fragment
-            GL_GEOMETRY_SHADER,        // <- ShaderType::Geometry
-            GL_COMPUTE_SHADER,         // <- ShaderType::Compute
-            GL_TESS_CONTROL_SHADER,    // <- ShaderType::TessControl
-            GL_TESS_EVALUATION_SHADER, // <- ShaderType::Evaluation
-        };
-
-        return IsShaderTypeValid(type) ? glShaderNames.at(ShaderTypeIndex(type) - 1u) : c_InvalidGLShader;
-    }
-
-    constexpr static const char* GetShaderTypeString(const ShaderType type) noexcept
-    {
-        const std::array<const char*, static_cast<std::size_t>(ShaderType::EnumEnd)> glShaderStrings{
-            "VertexShader",         // <- ShaderType::Vertex
-            "FragmentShader",       // <- ShaderType::Fragment
-            "GeometryShader",       // <- ShaderType::Geometry
-            "ComputeShader",        // <- ShaderType::Compute
-            "TessControlShader",    // <- ShaderType::TessControl
-            "TessEvaluationShader", // <- ShaderType::Evaluation
-        };
-
-        return IsShaderTypeValid(type) ? glShaderStrings.at(ShaderTypeIndex(type) - 1u) : c_InvalidGLShaderString;
-    }
-
-    std::string LoadFileContent(const std::string_view filepath) noexcept
-    {
-        std::ifstream file{ filepath.data() };
-        if (!file.is_open())
-        {
-            spdlog::warn("[Internal] Load file content failed (filepath: {})!", filepath.data());
-            return {};
-        }
-
-        std::stringstream buffer{};
-        buffer << file.rdbuf();
-
-        return buffer.str();
-    }
+    for (const auto& [type, file] : props.Sources)
+        Shader::LoadSource(type, file);
 }
 
-namespace OpenGL
+Shader::~Shader() noexcept
 {
-    enum class ShaderParameter : RendererEnum
-    {
-        ShaderType         = GL_SHADER_TYPE,
-        DeleteStatus       = GL_DELETE_STATUS,
-        CompileStatus      = GL_COMPILE_STATUS,
-        InfoLogLength      = GL_INFO_LOG_LENGTH,
-        ShaderSourceLength = GL_SHADER_SOURCE_LENGTH,
-    };
-
-    enum class ProgramParameter : RendererEnum
-    {
-        DeleteStatus             = GL_DELETE_STATUS,
-        LinkStatus               = GL_LINK_STATUS,
-        ValidateStatus           = GL_VALIDATE_STATUS,
-        InfoLogLength            = GL_INFO_LOG_LENGTH,
-        AttachedShaders          = GL_ATTACHED_SHADERS,
-        ActiveAttributes         = GL_ACTIVE_ATTRIBUTES,
-        ActiveAttributeMaxLength = GL_ACTIVE_ATTRIBUTE_MAX_LENGTH,
-        ActiveUniforms           = GL_ACTIVE_UNIFORMS,
-        ActiveUniformsMaxLength  = GL_ACTIVE_UNIFORM_MAX_LENGTH,
-    };
-
-    static GLint GetShaderParameter(const RendererID id, const ShaderParameter parameter) noexcept
-    {
-        static GLint status{};
-        glGetShaderiv(id, static_cast<RendererEnum>(parameter), &status);
-
-        return status;
-    }
-
-    static GLint GetProgramParameter(const RendererID id, const ProgramParameter parameter) noexcept
-    {
-        static GLint status{};
-        glGetProgramiv(id, static_cast<RendererEnum>(parameter), &status);
-
-        return status;
-    }
-
-    static inline bool DoesProgramExist(const RendererID id) noexcept
-    {
-        return !(GetProgramParameter(id, ProgramParameter::ValidateStatus) == GL_INVALID_VALUE);
-    }
-
-    static bool DoesShaderExist(const RendererID id) noexcept
-    {
-        static GLint status{};
-        glGetShaderiv(id, GL_VALIDATE_STATUS, &status);
-    }
-
-    static inline RendererID CreateProgram() noexcept
-    {
-        const RendererID id{ glCreateProgram() };
-        spdlog::debug("[OpenGL] Creating a program (id: {})", id);
-        return id;
-    }
-
-    static inline void DeleteProgram(RendererID& id) noexcept
-    {
-        if (!DoesProgramExist(id))
-        {
-            spdlog::critical("[OpenGL] Invalid program id (id: {})!", id);
-            return;
-        }
-
-        spdlog::debug("[OpenGL] Deleting the program (id: {})!", id);
-        glDeleteProgram(id);
-    }
-
-    static inline void AttachShader(const RendererID program, const RendererID shader) noexcept
-    {
-        if (!DoesProgramExist(program))
-        {
-            spdlog::critical("[OpenGL] Got invalid program id when attaching a shader!");
-        }
-
-        glAttachShader(program, shader);
-        spdlog::debug("[OpenGL] Attaching a shader (id: {}) to a program (id: {})", shader, program);
-    }
-
-    static RendererID CreateShader(const ShaderType type, const std::string_view source) noexcept
-    {
-        if (!Internal::IsShaderTypeValid(type))
-        {
-            spdlog::critical("[OpenGL] Shader creation: invalid shader type!");
-            return static_cast<RendererID>(0);
-        }
-
-        if (!source.data())
-        {
-            spdlog::critical("[OpenGL] Shader creation: empty source!");
-            return static_cast<RendererID>(0);
-        }
-
-        const RendererID id{ glCreateShader(Internal::GetGLShaderType(type)) };
-        spdlog::debug("[OpenGL] Creating a shader (id: {})", id);
-        const auto csource{ source.data() };
-        glShaderSource(id, 1, &csource, nullptr);
-
-        return id;
-    }
+    OpenGLCommand::DeleteProgram(m_RendererID);
 }
 
-Shader::Shader(const ShaderProps& props)
+bool Shader::LoadSource(const ShaderType type, const std::string& source) noexcept
 {
-    for (const auto& [type, filepath] : props.Filepaths)
+    return Shader::InternalLoadSource(type, FileManagerHelper::CreateFromContent(source));
+}
+
+bool Shader::LoadSource(const ShaderType type, FileManager& source) noexcept
+{
+    if (!source.IsLoaded()) source.Load();
+
+    return Shader::InternalLoadSource(type, source);
+}
+
+bool Shader::LoadSource(const ShaderType type, const FileManager& source) noexcept
+{
+    if (!source.IsLoaded())
     {
-        continue_if(filepath.empty());
-        Shader::LoadFromFile(type, filepath, props.CompileAndLink);
+        spdlog::error("[Shader::LoadSource()] Not loaded source cannot be passed as a const& argument!");
+        return false;
     }
 
-    if (props.CompileAndLink)
-        Shader::Link();
+    return Shader::InternalLoadSource(type, source);
 }
 
-Shader::~Shader()
+bool Shader::Compile() noexcept
 {
-    OpenGL::DeleteProgram(m_RendererID);
-}
-
-bool Shader::LoadFromText(const ShaderType type, const std::string_view source, bool recompile)
-{
-    const RendererID shader{ OpenGL::CreateShader(type, source) };
-    m_Shaders[Internal::ShaderTypeIndex(type)] = shader;
-
-    return recompile ? Shader::CompileShader(shader) : true;
-}
-
-bool Shader::LoadFromFile(const ShaderType type, const std::string_view filepath, bool recompile)
-{
-    const auto source{ Internal::LoadFileContent(filepath) };
-    return Shader::LoadFromText(type, source, recompile);
-}
-
-bool Shader::Compile()
-{
-    for (std::size_t i{ 0u }; i < Shader::c_ShaderCount && m_Shaders[i]; ++i)
+    bool retval{ true };
+    for (std::size_t i = 0u; i < m_Handles.size() && m_Handles[i] != c_EmptyID; ++i)
     {
-        bool success{ Shader::CompileShader(m_Shaders[i]) };
-        if (!success) return false;
+        const bool success{ Shader::InternalCompileShader(i) };
+        if (!success) retval = false;
+    }
+
+    return retval;
+}
+
+bool Shader::Link() noexcept
+{
+    RendererID program{ OpenGLCommand::CreateProgram() };
+
+    for (const auto& it : m_Handles)
+    {
+        if (it == c_EmptyID) continue;
+        OpenGLCommand::AttachShader(program, it);
+    }
+
+    OpenGLCommand::LinkProgram(program);
+    const auto status{ OpenGLCommand::GetProgramParameter(program, OpenGLCommand::ProgramParameter::LinkStatus) };
+    if (!status)
+    // if (const auto status{ OpenGLCommand::GetProgramParameter(program, OpenGLCommand::ProgramParameter::LinkStatus) })
+    {
+        const auto infoLog{ OpenGLCommand::GetProgramInfoLog(program) };
+        spdlog::error("[Shader::Link()] Failed to link the program (id: {}): {}", program, infoLog);
+        return false;
+    }
+
+    if (m_RendererID != c_EmptyID) OpenGLCommand::DeleteProgram(m_RendererID);
+
+    m_RendererID = program;
+    return true;
+}
+
+void Shader::Bind() const
+{
+    OpenGLCommand::UseProgram(m_RendererID);
+}
+
+void Shader::Unbind() const
+{
+    OpenGLCommand::UseProgram(0u);
+}
+
+bool Shader::InternalLoadSource(const ShaderType type, const FileManager& source) noexcept
+{
+    // Wait for complete shader class in order to test this case.
+    // if (source.GetContent() == FileManager::c_NoContent)
+    // {
+    //     spdlog::error("[Shader::LoadSource()] In order to load the shader\'s source, it has to have content!");
+    //     return false;
+    // }
+
+    m_Handles [Internal::ShaderTypeIndex(type)] = OpenGLCommand::CreateShader(type, source.GetContent());
+    m_Sources [Internal::ShaderTypeIndex(type)] = source;
+    m_Compiled[Internal::ShaderTypeIndex(type)] = false;
+
+    return true;
+}
+
+bool Shader::InternalCompileShader(const std::size_t index)
+{
+    if (m_Compiled[index]) return true;
+
+    const auto id{ m_Handles[index] };
+    OpenGLCommand::CompileShader(id);
+
+    const auto status{ OpenGLCommand::GetShaderParameter(id, OpenGLCommand::ShaderParameter::CompileStatus) };
+    if (!status)
+    {
+        const auto infoLog{ OpenGLCommand::GetShaderInfoLog(id) };
+        spdlog::error("[Shader::CompileShader()] Failed to compile a shader (id: {}): {}", id, infoLog);
+        return false;
     }
 
     return true;
 }
 
-bool Shader::Link()
+ShaderDataExtractor::ShaderDataExtractor(const std::shared_ptr<Shader>& shader) noexcept
+    : Ref{ shader }
 {
-    const RendererID program{ OpenGL::CreateProgram() };
-
-    for (std::size_t i{ 0u }; i < Shader::c_ShaderCount && m_Shaders[i]; ++i)
-        OpenGL::AttachShader(m_RendererID, m_Shaders[i]);
-        
+    for (std::size_t i{ 0u }; i < shader->m_Handles.size() && shader->m_Handles[i] != c_EmptyID; ++i)
+    {
+        ShaderData.push_back({
+            .ID     = shader->m_Handles[i],
+            .Type   = Internal::GetShaderTypeString(static_cast<ShaderType>(i + 1u)),
+            .Source = shader->m_Sources[i],
+        });
+    }
 }
 
 RENDERER_CODE_END
