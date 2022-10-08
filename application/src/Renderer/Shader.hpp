@@ -36,7 +36,7 @@ struct ShaderProps
     const std::unordered_map<ShaderType, FileManager> Sources{};
 };
 
-struct Shader
+class Shader
     : public RendererElement,
       public Bindable
 {

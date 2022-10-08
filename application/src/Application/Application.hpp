@@ -22,7 +22,8 @@ public:
     void Run() noexcept;
     void Shutdown() noexcept;
 
-    void RenderImGui() noexcept;
+    void OnRenderViewport() noexcept;
+    void OnRenderImGui() noexcept;
 
 private:
     std::unique_ptr<Window> m_Window;
@@ -30,4 +31,12 @@ private:
 
     std::shared_ptr<Renderer::Shader> m_CustomShader{};
     Renderer::ShaderDataExtractor m_CustomShaderData{};
+
+    Renderer::RendererID m_Framebuffer{ 0u };
+    Renderer::RendererID m_TextureColorbuffer{ 0u };
+    Renderer::RendererID m_Renderbuffer{ 0u };
+
+    std::vector<float> m_Vertices{};
+    Renderer::RendererID m_VertexBuffer{ 0u };
+    Renderer::RendererID m_VertexArray{ 0u };
 };
