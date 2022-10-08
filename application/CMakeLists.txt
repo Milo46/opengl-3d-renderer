@@ -7,20 +7,32 @@ add_executable(${PROJECT_NAME}
     src/Utility/FileManager.hpp
     src/Utility/FileManager.cpp
 
+    src/Logger/Logger.hpp
+    src/Logger/Logger.cpp
+
     src/ImGui/ImGuiBuild.hpp
+    src/ImGui/ImGuiContext.hpp
+    src/ImGui/ImGuiContext.cpp
+
+    src/Window/Window.hpp
+    src/Window/Window.cpp
 
     private/Renderer/ShaderInternal.hpp
     private/Renderer/ShaderInternal.cpp
+    src/Renderer/GraphicsContext.hpp
+    src/Renderer/GraphicsContext.cpp
     src/Renderer/RendererCore.hpp
     src/Renderer/RendererCore.cpp
     src/Renderer/Bindable.hpp
     src/Renderer/Shader.hpp
     src/Renderer/Shader.cpp
+    src/Renderer/Renderer.hpp
 
-    # src/Core/EntryPoint.hpp
-    # src/Core/Source.cpp
+    src/Application/Application.hpp
+    src/Application/Application.cpp
 
-    src/main.cpp
+    src/Core/EntryPoint.hpp
+    src/Core/EntryPoint.cpp
 )
 
 target_link_libraries(${PROJECT_NAME} PUBLIC

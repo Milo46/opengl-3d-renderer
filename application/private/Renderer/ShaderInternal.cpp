@@ -40,6 +40,7 @@ namespace Renderer::OpenGLCommand
     {
         std::string infoLog{};
         const auto size{ GetShaderParameter(id, ShaderParameter::InfoLogLength) };
+        infoLog.resize(size);
         glGetShaderInfoLog(id, size, nullptr, &infoLog[0u]);
         return infoLog;
     }
@@ -48,6 +49,7 @@ namespace Renderer::OpenGLCommand
     {
         std::string infoLog{};
         const auto size{ GetProgramParameter(id, ProgramParameter::InfoLogLength) };
+        infoLog.resize(size);
         glGetProgramInfoLog(id, size, nullptr, &infoLog[0u]);
         return infoLog;
     }

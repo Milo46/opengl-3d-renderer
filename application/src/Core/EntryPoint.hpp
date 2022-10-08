@@ -1,27 +1,8 @@
 #pragma once
 
-// Uncomment as soon as a working Application prototype exists.
-// #include "Application/Application.hpp"
+#include "Application/Application.hpp"
 
 #include <spdlog/spdlog.h>
-#include <memory>
-
-// Dummy application class, to remove.
-struct Application
-{
-    bool Initialize() { return false; }
-    void Run() { }
-};
-
-// Another dummy class...
-struct EngineAllocator
-{
-    template<typename _Ty>
-    static auto CreateUnique()
-    {
-        return std::make_unique<_Ty>();
-    }
-};
 
 int main(int argc, char** argv)
 {
@@ -30,7 +11,12 @@ int main(int argc, char** argv)
             - allocating the memory for the object,
             - informs what is being allocated (name, size, id, ...).
     */
-    auto application{ EngineAllocator::CreateUnique<Application>() };
+    // auto application{ EngineAllocator::CreateUnique<Application>() };
+
+    auto application{ std::make_unique<Application>(ApplicationProps{
+        .Name       = "Application",
+        .WindowSize = { 800u, 600u, },
+    }) };
 
     if (!application.get())
     {

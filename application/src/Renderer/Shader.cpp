@@ -69,7 +69,7 @@ bool Shader::Link() noexcept
     // if (const auto status{ OpenGLCommand::GetProgramParameter(program, OpenGLCommand::ProgramParameter::LinkStatus) })
     {
         const auto infoLog{ OpenGLCommand::GetProgramInfoLog(program) };
-        spdlog::error("[Shader::Link()] Failed to link the program (id: {}): {}", program, infoLog);
+        spdlog::error("[Shader::Link()] Failed to link the program (id: {}):\n{}", program, infoLog);
         return false;
     }
 
@@ -116,7 +116,7 @@ bool Shader::InternalCompileShader(const std::size_t index)
     if (!status)
     {
         const auto infoLog{ OpenGLCommand::GetShaderInfoLog(id) };
-        spdlog::error("[Shader::CompileShader()] Failed to compile a shader (id: {}): {}", id, infoLog);
+        spdlog::error("[Shader::CompileShader()] Failed to compile a shader (id: {}):\n{}", id, infoLog);
         return false;
     }
 
@@ -124,8 +124,13 @@ bool Shader::InternalCompileShader(const std::size_t index)
 }
 
 ShaderDataExtractor::ShaderDataExtractor(const std::shared_ptr<Shader>& shader) noexcept
-    : Ref{ shader }
 {
+    ShaderDataExtractor::Extract(shader);
+}
+
+void ShaderDataExtractor::Extract(const std::shared_ptr<Shader>& shader) noexcept
+{
+    Ref = shader;
     for (std::size_t i{ 0u }; i < shader->m_Handles.size() && shader->m_Handles[i] != c_EmptyID; ++i)
     {
         ShaderData.push_back({

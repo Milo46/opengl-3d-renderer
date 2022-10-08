@@ -87,9 +87,11 @@ struct ShaderData
 struct ShaderDataExtractor
 {
     std::vector<ShaderData> ShaderData{};
-    const std::shared_ptr<Shader>& Ref;
+    std::shared_ptr<const Shader> Ref;
 
+    ShaderDataExtractor() = default;
     explicit ShaderDataExtractor(const std::shared_ptr<Shader>& shader) noexcept;
+    void Extract(const std::shared_ptr<Shader>& shader) noexcept;
 };
 
 RENDERER_CODE_END

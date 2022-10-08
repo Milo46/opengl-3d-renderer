@@ -2,9 +2,10 @@ Global todo list:
 
 Active:
     @Milo46 [06.10.2022](Application::ShaderInternal)
-        Repair info log functions!
-    @Milo46 [06.10.2022](Application::ShaderInternal)
         Reduce all of those functions (at best completely remove the private directory), check gl calls only on debug!
 
 Finished:
-    {}
+    @Milo46 [06.10.2022](Application::ShaderInternal)
+        Repair info log functions!
+        -> @Milo46 fixed [07.10.2022]
+            Forgot to resize the info log!!
