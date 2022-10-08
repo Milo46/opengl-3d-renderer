@@ -6,6 +6,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_executable(${PROJECT_NAME}
     src/Utility/FileManager.hpp
     src/Utility/FileManager.cpp
+    src/Utility/Checker.hpp
+    src/Utility/Checker.cpp
 
     src/Logger/Logger.hpp
     src/Logger/Logger.cpp

@@ -34,7 +34,6 @@ inline constexpr auto GetShaderTypeCount() noexcept
 struct ShaderProps
 {
     const std::unordered_map<ShaderType, FileManager> Sources{};
-    const bool Initialize{ false };
 };
 
 struct Shader

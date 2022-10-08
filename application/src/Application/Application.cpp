@@ -5,30 +5,7 @@
 
 #include <GLAD/glad.h>
 
-struct CheckInstruction
-{
-    const std::function<bool()> Function;
-    const std::string_view OnError;
-};
-
-class Checker
-{
-public:
-    // using CheckInstruction = std::tuple<std::function<bool>(), std::string_view>;
-    using CheckSequence    = std::vector<CheckInstruction>;
-
-public:
-    static bool PerformSequence(spdlog::level::level_enum severity, const CheckSequence& sequence)
-    {
-        for (const auto& [check, onError] : sequence)
-        {
-            if (check()) continue;
-            spdlog::log(severity, onError);
-            return false;
-        }
-        return true;
-    }
-};
+#include "Utility/Checker.hpp"
 
 Application::Application(const ApplicationProps& props) noexcept
     : m_Window{ std::make_unique<Window>(props.Name, props.WindowSize) },
