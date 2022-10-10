@@ -48,13 +48,10 @@ class Shader
     friend struct ShaderDataExtractor;
 
 public:
-    static constexpr auto c_ShaderCount{ GetShaderTypeCount<std::size_t>() };
+    DECLARE_CREATABLE(Shader);
 
 public:
-    inline static auto Create(const ShaderProps& props) noexcept
-    {
-        return std::make_shared<Shader>(props);
-    }
+    static constexpr auto c_ShaderCount{ GetShaderTypeCount<std::size_t>() };
 
 public:
     explicit Shader(const ShaderProps& props) noexcept;
@@ -88,6 +85,8 @@ private:
     std::array<FileManager, Shader::c_ShaderCount> m_Sources{};
     std::array<bool, Shader::c_ShaderCount> m_Compiled{ false };
 };
+
+DEFINE_DEFAULT_CREATE(Shader);
 
 struct ShaderData
 {

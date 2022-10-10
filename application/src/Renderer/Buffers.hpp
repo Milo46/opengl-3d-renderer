@@ -78,10 +78,7 @@ class VertexBuffer
       public Bindable
 {
 public:
-    inline static auto Create(const VertexBufferProps& props) noexcept
-    {
-        return std::make_shared<VertexBuffer>(props);
-    }
+    DECLARE_CREATABLE(VertexBuffer);
 
 public:
     explicit VertexBuffer(const VertexBufferProps& props);
@@ -110,10 +107,7 @@ class IndexBuffer
       public Bindable
 {
 public:
-    inline static auto Create(const IndexBufferProps& props) noexcept
-    {
-        return std::make_shared<IndexBuffer>(props);
-    }
+    DECLARE_CREATABLE(IndexBuffer);
 
 public:
     explicit IndexBuffer(const IndexBufferProps& props);
@@ -128,5 +122,8 @@ public:
 private:
     std::size_t m_Count{ 0u };
 };
+
+DEFINE_DEFAULT_CREATE(VertexBuffer);
+DEFINE_DEFAULT_CREATE(IndexBuffer);
 
 RENDERER_CODE_END

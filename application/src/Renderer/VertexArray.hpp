@@ -17,10 +17,7 @@ class VertexArray
       public Bindable
 {
 public:
-    inline static auto Create(const VertexArrayProps& props) noexcept
-    {
-        return std::make_shared<VertexArray>(props);
-    }
+    DECLARE_CREATABLE(VertexArray);
 
 public:
     explicit VertexArray(const VertexArrayProps& props);
@@ -40,5 +37,7 @@ private:
     std::shared_ptr<VertexBuffer> m_VertexBuffer;
     std::shared_ptr<IndexBuffer> m_IndexBuffer;
 };
+
+DEFINE_DEFAULT_CREATE(VertexArray);
 
 RENDERER_CODE_END

@@ -8,6 +8,8 @@
 
 #include "Utility/Checker.hpp"
 
+#include "Extensions/Renderer/BuffersVectorProps.hpp"
+
 Application::Application(const ApplicationProps& props) noexcept
     : m_Window{ std::make_unique<Window>(props.Name, props.WindowSize) },
       m_ImGuiContext{ std::make_unique<ImGuiBuildContext>() }
@@ -36,7 +38,7 @@ bool Application::Initialize() noexcept
         { [this]() { return m_ImGuiContext->Initialize(m_Window); }, "Failed to initialize ImGui context!", },
     })) return false;
 
-    m_CustomShader = Renderer::Shader::Create({
+    m_CustomShader = Renderer::Create<Renderer::Shader>({
         .Sources = {
             { Renderer::ShaderType::Vertex,   { "assets/shaders/vertex.glsl",   }, },
             { Renderer::ShaderType::Fragment, { "assets/shaders/fragment.glsl", }, },
@@ -75,34 +77,21 @@ bool Application::Initialize() noexcept
     std::vector<float> vertices{ 0.5f,  0.5f, 0.0f, 0.5f, -0.5f, 0.0f, -0.5f, -0.5f, 0.0f, -0.5f,  0.5f, 0.0f, };
     std::vector<unsigned int> indices{ 0u, 1u, 3u, 1u, 2u, 3u, };
 
-    auto vertexBuffer{ Renderer::VertexBuffer::Create({
-        .Data = vertices.data(),
-        .Size = vertices.size() * sizeof(float),
+    auto vertexBuffer{ Renderer::Create<Renderer::VertexBuffer, Renderer::VertexBufferPropsVector>({
+        .VectorData = vertices,
         .Layout = {
             { Renderer::LayoutDataType::Float3, "a_Position", },
         },
     }) };
 
-    auto indexBuffer{ Renderer::IndexBuffer::Create({
-        .Data  = indices.data(),
-        .Count = indices.size(),
+    auto indexBuffer{ Renderer::Create<Renderer::IndexBuffer, Renderer::IndexBufferPropsVector>({
+        .VectorData = indices,
     }) };
 
-    m_VertexArray = Renderer::VertexArray::Create({
+    m_VertexArray = Renderer::Create<Renderer::VertexArray>({
         .VertexBuffer = vertexBuffer,
         .IndexBuffer  = indexBuffer,
     });
-
-    // m_VertexArray = Renderer::VertexArray::Create({
-    //     .VertexBuffer = Renderer::VertexBuffer::Create({
-    //         .Data = vertices.data(),
-    //         .Size = vertices.size() * sizeof(float),
-    //         .Layout = {
-    //             { Renderer::LayoutDataType::Float3, "a_Position", },
-    //         },
-    //     }),
-    //     .IndexBuffer = Renderer::IndexBuffer::Create({ .VectorData = indices, }),
-    // });
 
     return true;
 }
@@ -186,6 +175,12 @@ void Application::OnRenderImGui(ImGuiIO& io, const float& deltaTime) noexcept
 
     ImGui::ShowDemoWindow();
 
+    Application::PanelViewport(io, deltaTime);
+    Application::PanelShader();
+}
+
+void Application::PanelViewport(ImGuiIO& io, const float& deltaTime)
+{
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
     ImGui::Begin("Viewport", nullptr, ImGuiWindowFlags_NoScrollbar /*| ImGuiWindowFlags_MenuBar*/);
     // if (ImGui::BeginMenuBar())
@@ -220,7 +215,10 @@ void Application::OnRenderImGui(ImGuiIO& io, const float& deltaTime) noexcept
     }
     ImGui::End();
     ImGui::PopStyleVar();
+}
 
+void Application::PanelShader()
+{
     ImGui::Begin("Shader Preview");
 
     const auto& shaderInfo{ m_CustomShaderData.ShaderData };
