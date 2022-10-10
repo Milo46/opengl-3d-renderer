@@ -14,6 +14,8 @@ public:
     bool Initialize();
     void SwapBuffers();
 
+    bool SetVSync(const bool flag);
+
 private:
     GLFWwindow* m_WindowHandle;
 };

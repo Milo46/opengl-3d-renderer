@@ -2,11 +2,9 @@
 
 out vec4 FragColor;
 
-// in vec3 vertexNormal;
-// in vec2 vertexTexCoord;
+uniform float u_Time;
 
 void main()
 {
-    // FragColor = vec4(vertexNormal, 1.0);
-    FragColor = vec4(1.0);
+    FragColor = vec4(vec3(abs(sin(u_Time))), 1.0);
 }

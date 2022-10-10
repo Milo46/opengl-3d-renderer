@@ -41,4 +41,10 @@ void GraphicsContext::SwapBuffers()
     glfwSwapBuffers(m_WindowHandle);
 }
 
+bool GraphicsContext::SetVSync(const bool flag)
+{
+    glfwSwapInterval(flag);
+    return flag;
+}
+
 RENDERER_CODE_END

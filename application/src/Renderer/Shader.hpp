@@ -10,10 +10,14 @@
 #include <string>
 #include <array>
 
+#include <GLAD/glad.h>
+
+// Uncomment when uniforms are ready.
 // #include <glm/glm.hpp>
 // #include <glm/gtc/type_ptr.hpp>
 
 #include "Utility/FileManager.hpp"
+#include "Utility/NonCopyable.hpp"
 
 RENDERER_CODE_BEGIN
 
@@ -37,7 +41,8 @@ struct ShaderProps
 };
 
 class Shader
-    : public RendererElement,
+    : public NonCopyable<Shader>,
+      public RendererElement,
       public Bindable
 {
     friend struct ShaderDataExtractor;
@@ -61,6 +66,14 @@ public:
 
     bool Compile() noexcept;
     bool Link() noexcept;
+
+public: // temporary, need to think about that
+    template<typename _Ty> inline void SetUniform(const std::string_view, const _Ty&) noexcept;
+    template<> inline void SetUniform<float>(const std::string_view name, const float& value) noexcept
+    {
+        const auto location{ glGetUniformLocation(m_RendererID, name.data()) };
+        glUniform1f(location, value);
+    }
 
 public:
     virtual void Bind() const override;

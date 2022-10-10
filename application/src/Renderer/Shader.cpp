@@ -7,7 +7,6 @@
 RENDERER_CODE_BEGIN
 
 Shader::Shader(const ShaderProps& props) noexcept
-    : RendererElement{ ::Renderer::c_EmptyID }
 {
     for (const auto& [type, file] : props.Sources)
         Shader::LoadSource(type, file);

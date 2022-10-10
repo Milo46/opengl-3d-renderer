@@ -8,6 +8,7 @@ add_executable(${PROJECT_NAME}
     src/Utility/FileManager.cpp
     src/Utility/Checker.hpp
     src/Utility/Checker.cpp
+    src/Utility/NonCopyable.hpp
 
     src/Logger/Logger.hpp
     src/Logger/Logger.cpp
@@ -28,6 +29,10 @@ add_executable(${PROJECT_NAME}
     src/Renderer/Bindable.hpp
     src/Renderer/Shader.hpp
     src/Renderer/Shader.cpp
+    src/Renderer/Buffers.hpp
+    src/Renderer/Buffers.cpp
+    src/Renderer/VertexArray.hpp
+    src/Renderer/VertexArray.cpp
     src/Renderer/Renderer.hpp
 
     src/Application/Application.hpp

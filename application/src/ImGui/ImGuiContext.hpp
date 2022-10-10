@@ -16,6 +16,10 @@ public:
 
     void Shutdown() noexcept;
 
+public:
+    inline ImGuiIO& GetIO() noexcept { return *m_IO; }
+    inline const ImGuiIO& GetIO() const noexcept { return *m_IO; }
+
 private:
     ImGuiContext* m_Context{ nullptr };
     ImGuiIO* m_IO{ nullptr };

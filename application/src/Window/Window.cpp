@@ -4,6 +4,10 @@
 #include <GLFW/glfw3.h>
 #include <spdlog/spdlog.h>
 
+#include "Utility/Checker.hpp"
+
+static bool s_GLFWInitialized{ false };
+
 static void GLFWErrorCallback(int error, const char* desc) noexcept
 {
     spdlog::error("GLFW Error {}: {}", error, desc);
@@ -45,20 +49,21 @@ Window::~Window()
 bool Window::Initialize() noexcept
 {
     glfwSetErrorCallback(GLFWErrorCallback);
-    if (!glfwInit())
-    {
-        spdlog::critical("[GLFW] Failed to initialize!");
-        return false;
-    }
+    if (!Checker::PerformSequence(spdlog::level::critical, {
+        { [&]() { return !s_GLFWInitialized; }, "[GLFW] Cannot create more than one window (for now)!", },
+        { [&]() { return glfwInit();         }, "[GLFW] Failed to initialize!",                         },
+    })) return false;
 
+    s_GLFWInitialized = true;
     m_Window = glfwCreateWindow({ m_Size.x }, { m_Size.y }, m_Title.c_str(), nullptr, nullptr);
 
-    m_OpenGLContext.reset(new Renderer::GraphicsContext{ m_Window });
-    if (!m_OpenGLContext->Initialize())
+    m_GraphicsContext.reset(new Renderer::GraphicsContext{ m_Window });
+    if (!m_GraphicsContext->Initialize())
     {
         spdlog::critical("[GraphicsContext] Failed to initialize!");
         return false;
     }
+    m_GraphicsContext->SetVSync(m_IsVSync);
 
     m_Monitor = glfwGetPrimaryMonitor();
     glfwGetWindowSize(m_Window, &m_Size.x, &m_Size.y);
@@ -80,7 +85,7 @@ bool Window::IsOpen() noexcept
 void Window::OnUpdate() noexcept
 {
     glfwPollEvents();
-    m_OpenGLContext->SwapBuffers();
+    m_GraphicsContext->SwapBuffers();
 }
 
 bool Window::IsFullscreen() const
@@ -112,6 +117,16 @@ void Window::SetFullscreen(bool flag)
 bool Window::IsFocused() const
 {
     return m_IsFocused;
+}
+
+bool Window::IsVSync() const
+{
+    return m_IsVSync;
+}
+
+bool Window::SetVSync(const bool flag)
+{
+    return (m_IsVSync = m_GraphicsContext->SetVSync(flag));
 }
 
 const glm::ivec2& Window::GetSize() const
