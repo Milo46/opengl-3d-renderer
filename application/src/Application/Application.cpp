@@ -11,12 +11,12 @@
 #include "Extensions/Renderer/BuffersVectorProps.hpp"
 
 Application::Application(const ApplicationProps& props) noexcept
-    : m_Window{ std::make_unique<Window>(props.Name, props.WindowSize) },
-      m_ImGuiContext{ std::make_unique<ImGuiBuildContext>() }
+    : m_Window      { std::make_unique<Window>(props.Name, props.WindowSize) },
+      m_ImGuiContext{ std::make_unique<ImGuiBuildContext>()                  }
 {
-    // m_Window->SetKeybinds({
-    //     { Window::Action::Close,            { Input::Escape, }, },
-    //     { Window::Action::ToggleFullscreen, { Input::F11     }, },
+    // m_Window->AddKeybinds({
+        // { WindowAction::Miximize, { GLFW_KEY_F10, }, },
+        // { WindowAction::Iconify,  { GLFW_KEY_F9,  }, },
     // });
 
     m_Window->SetVSync(true);

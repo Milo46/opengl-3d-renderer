@@ -6,6 +6,11 @@
 
 #include "Utility/Checker.hpp"
 
+const Window::KeybindsContainer Window::c_DefaultKeybinds{
+    { WindowAction::ToggleFullscreen, { GLFW_KEY_F11,    }, },
+    { WindowAction::Close,            { GLFW_KEY_ESCAPE, }, },
+};
+
 static bool s_GLFWInitialized{ false };
 
 static void GLFWErrorCallback(int error, const char* desc) noexcept
@@ -27,8 +32,31 @@ static void WindowKeyCallback(GLFWwindow* window, int key, int scancode, int act
 {
     auto userPointer{ static_cast<Window*>(glfwGetWindowUserPointer(window)) };
 
-    if (key == GLFW_KEY_F11 && action == GLFW_PRESS)
-        userPointer->SetFullscreen(!userPointer->m_IsFullscreen);
+    for (const auto& [bindaction, binds] : userPointer->m_Keybinds)
+    {
+        for (const auto& bind : binds)
+        {
+            if (!(key == bind && action == GLFW_PRESS))
+                continue;
+            
+            switch (bindaction)
+            {
+            case WindowAction::Close:
+                userPointer->Close();
+                break;
+            
+            case WindowAction::ToggleFullscreen:
+                userPointer->SetFullscreen(!userPointer->m_IsFullscreen);
+                break;
+
+            case WindowAction::Miximize: userPointer->Maximize(); break;
+            case WindowAction::Iconify:  userPointer->Iconify();  break;
+
+            default: break;
+            }
+            break;
+        }
+    }
 }
 
 static void WindowFocusCallback(GLFWwindow* window, int focused)
@@ -86,6 +114,32 @@ void Window::OnUpdate() noexcept
 {
     glfwPollEvents();
     m_GraphicsContext->SwapBuffers();
+}
+
+void Window::Maximize() noexcept
+{
+    glfwMaximizeWindow(m_Window);
+}
+
+void Window::Iconify() noexcept
+{
+    glfwIconifyWindow(m_Window);
+}
+
+void Window::Close() noexcept
+{
+    glfwSetWindowShouldClose(m_Window, 1);
+}
+
+void Window::SetKeybinds(const KeybindsContainer& keybinds) noexcept
+{
+    m_Keybinds = keybinds;
+}
+
+void Window::AddKeybinds(const KeybindsContainer& keybinds) noexcept
+{
+    for (const auto& [action, binds] : keybinds)
+        for (const auto& bind : binds) m_Keybinds[action].insert(bind);
 }
 
 bool Window::IsFullscreen() const

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <unordered_map>
+#include <unordered_set>
 #include <memory>
 #include <string>
 
@@ -11,6 +13,16 @@
 struct GLFWwindow;
 struct GLFWmonitor;
 
+enum class WindowAction
+{
+    None = 0,
+
+    ToggleFullscreen,
+    Miximize,
+    Iconify,
+    Close,
+};
+
 class Window : public NonCopyable<Window>
 {
     friend void WindowFramebufferCallback(GLFWwindow*, int, int);
@@ -18,13 +30,11 @@ class Window : public NonCopyable<Window>
     friend void WindowFocusCallback(GLFWwindow*, int);
 
 public:
-    enum class Action
-    {
-        None = 0,
+    using KeybindsContainer = std::unordered_map<WindowAction, std::unordered_set<int>>;
 
-        ToggleFullscreen,
-        Close,
-    };
+    static const KeybindsContainer c_DefaultKeybinds;
+    // { WindowAction::ToggleFullscreen, { GLFW_KEY_F11,    }, },
+    // { WindowAction::Close,            { GLFW_KEY_ESCAPE, }, },
 
 public:
     Window() = default;
@@ -35,6 +45,14 @@ public:
     bool IsOpen() noexcept;
 
     void OnUpdate() noexcept;
+
+    void Maximize() noexcept;
+    void Iconify() noexcept;
+    void Close() noexcept;
+
+public:
+    void SetKeybinds(const KeybindsContainer& keybinds) noexcept;
+    void AddKeybinds(const KeybindsContainer& keybinds) noexcept;
 
 public:
     bool IsFullscreen() const;
@@ -70,4 +88,6 @@ private:
     bool m_IsFullscreen{ false };
     bool m_IsFocused{ true };
     bool m_IsVSync{ true };
+
+    KeybindsContainer m_Keybinds{ Window::c_DefaultKeybinds };
 };
