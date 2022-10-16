@@ -13,6 +13,7 @@
 Application::Application(const ApplicationProps& props) noexcept
     : m_Window      { std::make_unique<Window>(props.Name, props.WindowSize) },
       m_ImGuiContext{ std::make_unique<ImGuiBuildContext>()                  }
+    //   m_Camera      { -1.0f, 1.0f, -1.0f, 1.0f,                              }
 {
     // m_Window->AddKeybinds({
         // { WindowAction::Miximize, { GLFW_KEY_F10, }, },
@@ -35,6 +36,7 @@ bool Application::Initialize() noexcept
     if (!Checker::PerformSequence(spdlog::level::critical, {
         { [this]() { return Logger::Initialize();                 }, "Failed to initialize the logger!",    },
         { [this]() { return m_Window->Initialize();               }, "Failed to initialize the window!",    },
+        // { [this]() { return Renderer::Renderer2D::Initialize();   }, "Failed to initialize the renderer!",  },
         { [this]() { return m_ImGuiContext->Initialize(m_Window); }, "Failed to initialize ImGui context!", },
     })) return false;
 
@@ -52,14 +54,18 @@ bool Application::Initialize() noexcept
     glGenFramebuffers(1, &m_Framebuffer);
     glBindFramebuffer(GL_FRAMEBUFFER, m_Framebuffer);
 
-    glGenTextures(1, &m_TextureColorbuffer);
-    glBindTexture(GL_TEXTURE_2D, m_TextureColorbuffer);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 800, 600, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glBindTexture(GL_TEXTURE_2D, 0u);
+    // glGenTextures(1, &m_TextureColorbuffer);
+    // glBindTexture(GL_TEXTURE_2D, m_TextureColorbuffer);
+    // glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 800, 600, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    // glBindTexture(GL_TEXTURE_2D, 0u);
 
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_TextureColorbuffer, 0);
+    m_TextureColorbuffer = Renderer::Create<Renderer::Texture2D>({
+        .Size = { 800u, 600u, },
+    });
+
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_TextureColorbuffer->GetHandle(), 0);
 
     glGenRenderbuffers(1, &m_Renderbuffer);
     glBindRenderbuffer(GL_RENDERBUFFER, m_Renderbuffer);
@@ -77,18 +83,18 @@ bool Application::Initialize() noexcept
     std::vector<float> vertices{ 0.5f,  0.5f, 0.0f, 0.5f, -0.5f, 0.0f, -0.5f, -0.5f, 0.0f, -0.5f,  0.5f, 0.0f, };
     std::vector<unsigned int> indices{ 0u, 1u, 3u, 1u, 2u, 3u, };
 
-    auto vertexBuffer{ Renderer::Create<Renderer::VertexBuffer, Renderer::VertexBufferPropsVector>({
+    auto vertexBuffer{ Renderer::Create<Renderer::VertexBuffer, Renderer::Extension::VertexBufferPropsVector>({
         .VectorData = vertices,
         .Layout = {
             { Renderer::LayoutDataType::Float3, "a_Position", },
         },
     }) };
 
-    auto indexBuffer{ Renderer::Create<Renderer::IndexBuffer, Renderer::IndexBufferPropsVector>({
+    auto indexBuffer{ Renderer::Create<Renderer::IndexBuffer, Renderer::Extension::IndexBufferPropsVector>({
         .VectorData = indices,
     }) };
 
-    m_VertexArray = Renderer::Create<Renderer::VertexArray>({
+    m_RectangleVA = Renderer::Create<Renderer::VertexArray>({
         .VertexBuffer = vertexBuffer,
         .IndexBuffer  = indexBuffer,
     });
@@ -144,12 +150,21 @@ void Application::OnRenderViewport() noexcept
     glClearColor(0.2f, 0.4f, 0.6f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    // Renderer::RenderCommand::SetViewport(0, 0, 800, 600);
+    // Renderer::RenderCommand::SetClearColor({ 0.2f, 0.4f, 0.6f, 1.0f, });
+    // Renderer::RenderCommand::Clear();
+
     m_CustomShader->Bind();
     m_CustomShader->SetUniform("u_Time", static_cast<float>(glfwGetTime()));
+    m_CustomShader->SetUniform("u_Color", glm::vec3{ 0.8f, 0.2f, 0.2f, });
 
-    m_VertexArray->Bind();
-    glDrawElements(GL_TRIANGLES, m_VertexArray->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, nullptr);
-    m_TriangleCount += m_VertexArray->GetIndexBuffer()->GetCount() / 3.0f;
+    m_RectangleVA->Bind();
+    glDrawElements(GL_TRIANGLES, m_RectangleVA->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, nullptr);
+    m_TriangleCount += m_RectangleVA->GetIndexBuffer()->GetCount() / 3.0f;
+
+    // Renderer::Renderer2D::BeginScene(m_Camera);
+    // Renderer::Renderer2D::DrawRectangle({ 1.0f, 1.0f, 0.0f, }, { 0.0f, 0.0f, 0.0f, }, { 0.3f, 0.5f, 0.0f, });
+    // Renderer::Renderer2D::EndScene();
 }
 
 void Application::OnRenderImGui(ImGuiIO& io, const float& deltaTime) noexcept
@@ -199,7 +214,7 @@ void Application::PanelViewport(ImGuiIO& io, const float& deltaTime)
     // }
 
     ImVec2 wsize{ ImGui::GetContentRegionAvail() };
-    ImGui::Image(reinterpret_cast<ImTextureID>(m_TextureColorbuffer), wsize, ImVec2(0, 1), ImVec2(1, 0));
+    ImGui::Image(reinterpret_cast<ImTextureID>(m_TextureColorbuffer->GetHandle()), wsize, ImVec2(0, 1), ImVec2(1, 0));
     ImGui::SetCursorPos(ImVec2(5, 25)); ImGui::Text("Viewport Size: (%f, %f)", wsize.x, wsize.y);
     ImGui::SetCursorPos(ImVec2(5, 45)); ImGui::Text("FPS ImGui: %f", 1.0f / io.DeltaTime);
     ImGui::SetCursorPos(ImVec2(5, 65)); ImGui::Text("FPS Viewport: %f", 1.0f / deltaTime);

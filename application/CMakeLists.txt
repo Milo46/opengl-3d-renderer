@@ -20,8 +20,6 @@ add_executable(${PROJECT_NAME}
     src/Window/Window.hpp
     src/Window/Window.cpp
 
-    private/Renderer/ShaderInternal.hpp
-    private/Renderer/ShaderInternal.cpp
     src/Renderer/GraphicsContext.hpp
     src/Renderer/GraphicsContext.cpp
     src/Renderer/RendererCore.hpp
@@ -29,10 +27,15 @@ add_executable(${PROJECT_NAME}
     src/Renderer/Bindable.hpp
     src/Renderer/Shader.hpp
     src/Renderer/Shader.cpp
+    src/Renderer/Texture2D.hpp
+    src/Renderer/Texture2D.cpp
     src/Renderer/Buffers.hpp
     src/Renderer/Buffers.cpp
     src/Renderer/VertexArray.hpp
     src/Renderer/VertexArray.cpp
+    src/Renderer/RenderCommand.hpp
+    src/Renderer/RenderCommand.cpp
+    src/Renderer/Renderer.cpp
     src/Renderer/Renderer.hpp
 
     src/Application/Application.hpp

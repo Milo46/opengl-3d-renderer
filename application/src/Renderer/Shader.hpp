@@ -12,9 +12,8 @@
 
 #include <GLAD/glad.h>
 
-// Uncomment when uniforms are ready.
-// #include <glm/glm.hpp>
-// #include <glm/gtc/type_ptr.hpp>
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include "Utility/FileManager.hpp"
 #include "Utility/NonCopyable.hpp"
@@ -28,13 +27,6 @@ enum class ShaderType
     EnumEnd,
 };
 
-template<typename _Integral>
-inline constexpr auto GetShaderTypeCount() noexcept
-{
-    static_assert(std::is_integral_v<_Integral>);
-    return static_cast<_Integral>(ShaderType::EnumEnd);
-}
-
 struct ShaderProps
 {
     const std::unordered_map<ShaderType, FileManager> Sources{};
@@ -45,13 +37,13 @@ class Shader
       public RendererElement,
       public Bindable
 {
-    friend struct ShaderDataExtractor;
-
 public:
     DECLARE_CREATABLE(Shader);
 
+    friend struct ShaderDataExtractor;
+
 public:
-    static constexpr auto c_ShaderCount{ GetShaderTypeCount<std::size_t>() };
+    static constexpr auto c_ShaderCount{ EnumHelpers::GetEnumClassSize<ShaderType>() };
 
 public:
     explicit Shader(const ShaderProps& props) noexcept;
@@ -70,6 +62,18 @@ public: // temporary, need to think about that
     {
         const auto location{ glGetUniformLocation(m_RendererID, name.data()) };
         glUniform1f(location, value);
+    }
+
+    template<> inline void SetUniform<glm::vec3>(const std::string_view name, const glm::vec3& value) noexcept
+    {
+        const auto location{ glGetUniformLocation(m_RendererID, name.data()) };
+        glUniform3f(location, value.x, value.y, value.z);
+    }
+
+    template<> inline void SetUniform<glm::mat4>(const std::string_view name, const glm::mat4& value) noexcept
+    {
+        const auto location{ glGetUniformLocation(m_RendererID, name.data()) };
+        glUniformMatrix4fv(location, 1u, GL_FALSE, glm::value_ptr(value));
     }
 
 public:

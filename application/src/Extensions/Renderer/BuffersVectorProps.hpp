@@ -4,21 +4,24 @@
 
 namespace Renderer
 {
-    struct VertexBufferPropsVector
+    namespace Extension
     {
-        const std::vector<float> VectorData{};
-        const BufferUsage Usage{ BufferUsage::StaticDraw };
-        const BufferLayout Layout{};
-    };
+        struct VertexBufferPropsVector
+        {
+            const std::vector<float> VectorData{};
+            const BufferUsage Usage{ BufferUsage::StaticDraw };
+            const BufferLayout Layout{};
+        };
 
-    struct IndexBufferPropsVector
-    {
-        const std::vector<unsigned int> VectorData{};
-        const BufferUsage Usage{ BufferUsage::StaticDraw };
-    };
+        struct IndexBufferPropsVector
+        {
+            const std::vector<unsigned int> VectorData{};
+            const BufferUsage Usage{ BufferUsage::StaticDraw };
+        };
+    }
 
     template<>
-    inline auto Create<::Renderer::VertexBuffer, VertexBufferPropsVector>(const VertexBufferPropsVector& props) noexcept -> std::shared_ptr<VertexBuffer>
+    inline auto Create<::Renderer::VertexBuffer, Extension::VertexBufferPropsVector>(const Extension::VertexBufferPropsVector& props) noexcept -> std::shared_ptr<VertexBuffer>
     {
         return Create<VertexBuffer>({
             .Data   = props.VectorData.data(),
@@ -29,7 +32,7 @@ namespace Renderer
     }
 
     template<>
-    inline auto Create<::Renderer::IndexBuffer, IndexBufferPropsVector>(const IndexBufferPropsVector& props) noexcept -> std::shared_ptr<IndexBuffer>
+    inline auto Create<::Renderer::IndexBuffer, Extension::IndexBufferPropsVector>(const Extension::IndexBufferPropsVector& props) noexcept -> std::shared_ptr<IndexBuffer>
     {
         return Create<IndexBuffer>({
             .Data  = props.VectorData.data(),

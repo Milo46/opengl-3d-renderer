@@ -3,6 +3,8 @@
 #include <GLAD/glad.h>
 #include <GLFW/glfw3.h>
 
+#include <spdlog/spdlog.h>
+
 // #include <spdlog/spdlog.h>
 
 RENDERER_CODE_BEGIN

@@ -82,7 +82,7 @@ void VertexArray::Bind() const
 
 void VertexArray::Unbind() const
 {
-    glBindVertexArray(::Renderer::c_EmptyID);
+    glBindVertexArray(c_EmptyValue<RendererID>);
 }
 
 RENDERER_CODE_END

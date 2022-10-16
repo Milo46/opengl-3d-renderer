@@ -2,12 +2,9 @@
 
 out vec4 FragColor;
 
-uniform float u_Time;
-
-in vec3 vertexPosition;
+uniform vec3 u_Color;
 
 void main()
 {
-    // FragColor = vec4(vec3(abs(sin(u_Time))), 1.0);
-    FragColor = vec4(abs(vertexPosition), 1.0);
+    FragColor = vec4(u_Color, 1.0);
 }
