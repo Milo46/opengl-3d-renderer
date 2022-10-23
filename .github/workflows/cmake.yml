@@ -11,6 +11,15 @@ env:
   BUILD_TYPE: Release
 
 jobs:
+  subdmodules:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@master
+    - name: Checkout submodules
+      uses: textbook/git-checkout-submodule-action@master
+
   build:
     # The CMake configure and build commands are platform agnostic and should work equally well on Windows or Mac.
     # You can convert this to a matrix build if you need cross-platform coverage.
