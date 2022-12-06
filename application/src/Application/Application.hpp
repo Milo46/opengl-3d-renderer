@@ -53,8 +53,9 @@ private:
 private:
     std::unique_ptr<Window> m_Window;
     std::unique_ptr<ImGuiBuildContext> m_ImGuiContext;
-    // Renderer::OrthographicCamera m_Camera;
+    Renderer::OrthographicCamera m_Camera;
 
+    // std::unique_ptr<Renderer> m_Renderer;
     // std::stack<State*> m_States{};
 
     std::size_t m_TriangleCount{ 0u };

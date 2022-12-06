@@ -1,7 +1,6 @@
 #include "Renderer.hpp"
 
 #include <spdlog/spdlog.h>
-#include <glm/gtc/matrix_transform.hpp>
 
 #include "Renderer/VertexArray.hpp"
 #include "Renderer/Shader.hpp"
@@ -9,39 +8,6 @@
 #include "Extensions/Renderer/BuffersVectorProps.hpp"
 
 RENDERER_CODE_BEGIN
-
-OrthographicCamera::OrthographicCamera(float left, float right, float bottom, float top)
-    : m_ProjectionMatrix{ glm::ortho(left, right, bottom, top, -1.0f, 1.0f) },
-      m_ViewMatrix{ glm::identity<glm::mat4>() } {}
-
-void OrthographicCamera::SetProjection(float left, float right, float bottom, float top)
-{
-    m_ProjectionMatrix = glm::ortho(left, right, bottom, top, -1.0f, 1.0f);
-}
-
-OrthographicCamera& OrthographicCamera::SetPosition(const glm::vec3& position) noexcept
-{
-    m_Position = position;
-    OrthographicCamera::RecalculateData();
-    return *this;
-}
-
-OrthographicCamera& OrthographicCamera::SetRotation(const float rotation) noexcept
-{
-    m_Rotation = rotation;
-    OrthographicCamera::RecalculateData();
-    return *this;
-}
-
-void OrthographicCamera::RecalculateData() noexcept
-{
-    glm::mat4 transform{
-        glm::translate(glm::identity<glm::mat4>(), m_Position) *
-        glm::rotate(glm::identity<glm::mat4>(), glm::radians(m_Rotation), glm::vec3(0, 0, 1))
-    };
-
-    m_ViewMatrix = glm::inverse(transform);
-}
 
 static auto ComposeModelMatrix(const glm::vec3& translation, const glm::vec3& rotation, const glm::vec3& scale) noexcept
 {
@@ -93,7 +59,7 @@ bool Renderer2D::Initialize()
 
     std::vector<unsigned int> indices{
         0u, 1u, 3u,
-        1u, 2u, 3u,  
+        1u, 2u, 3u,
     };
 
     auto vertexBuffer{ Create<VertexBuffer, Extension::VertexBufferPropsVector>({

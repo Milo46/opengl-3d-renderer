@@ -90,7 +90,7 @@ namespace Renderer::EnumHelpers
     constexpr inline auto MapEnumClass(
         _EnumClass value,
         const EnumClassMapType<_EnumClass, _ReturnType>& map,
-        const _ReturnType& onInvalidValue
+        const _ReturnType& onInvalidValue = _ReturnType{}
     ) noexcept
     {
         return IsEnumClassValid(value) ? map.at(ToIndex(value)) : onInvalidValue;

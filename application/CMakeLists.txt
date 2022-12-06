@@ -20,6 +20,9 @@ add_executable(${PROJECT_NAME}
     src/Window/Window.hpp
     src/Window/Window.cpp
 
+    src/Renderer/Camera/OrthographicCamera.cpp
+    src/Renderer/Camera/PerspectiveCamera.cpp
+
     src/Renderer/GraphicsContext.hpp
     src/Renderer/GraphicsContext.cpp
     src/Renderer/RendererCore.hpp
