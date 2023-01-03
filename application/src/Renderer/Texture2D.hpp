@@ -7,6 +7,8 @@
 
 #include <glm/glm.hpp>
 
+#include <string>
+
 RENDERER_CODE_BEGIN
 
 enum class TextureWrapping
@@ -58,6 +60,9 @@ public:
 public:
     virtual void Bind() const override;
     virtual void Unbind() const override;
+
+public:
+    bool LoadFilepath(const std::string& path);
 
 private:
     glm::vec2 m_Size{};

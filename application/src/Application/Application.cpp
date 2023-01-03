@@ -153,7 +153,7 @@ void Application::OnRenderViewport() noexcept
     // m_TriangleCount += m_RectangleVA->GetIndexBuffer()->GetCount() / 3.0f;
 
     Renderer::Renderer2D::BeginScene(m_Camera);
-    Renderer::Renderer2D::DrawRectangle({ 1.0f, 1.0f, 0.0f, }, { 0.0f, 0.0f, 0.0f, }, { 0.3f, 0.5f, 0.0f, });
+    Renderer::Renderer2D::DrawRectangle({ 1.0f, 1.0f, 0.0f, }, { 1.0f, 0.0f, 0.0f, }, { 0.3f, 0.5f, 0.0f, });
     // Renderer::Renderer2D::DrawRectangle({ 0.75f, 0.75f, 0.0f, }, { 100.0f, 0.25f, 0.0f, }, { 1.0f, 0.3f, 0.3f, });
     Renderer::Renderer2D::EndScene();
 }

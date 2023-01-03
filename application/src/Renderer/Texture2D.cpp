@@ -3,6 +3,8 @@
 #include <array>
 #include <GLAD/glad.h>
 
+#include <stb_image.h>
+
 RENDERER_CODE_BEGIN
 
 namespace Internal
@@ -62,6 +64,26 @@ void Texture2D::Bind() const
 void Texture2D::Unbind() const
 {
     glBindTexture(GL_TEXTURE_2D, 0u);
+}
+
+bool Texture2D::LoadFilepath(const std::string& path)
+{
+    // int width{}, height{}, channels{};
+    // stbi_set_flip_vertically_on_load(1);
+    // auto data = stbi_load(path.c_str(), &width, &height, &channels, 0);
+
+    // if (!data) return false;
+
+    // m_Size = { width, height };    
+    // auto internalFormat = channels == 4 ? GL_RGBA8 : channels == 3 ? GL_RGB8 : 0;
+    // auto dataFormat     = channels == 4 ? GL_RGBA  : channels == 3 ? GL_RGB  : 0;
+
+    // glCreateTextures(GL_TEXTURE_2D, 1, &m_RendererID);
+    // glTextureStorage2D(m_RendererID, 1, internalFormat, m_Size.width, m_Size.height);
+
+    // glTextureSubImage2D(m_RendererID, 0, 0, 0, )
+
+    return true;
 }
 
 RENDERER_CODE_END
