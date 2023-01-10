@@ -1,5 +1,7 @@
 #include "Texture2D.hpp"
 
+#include <spdlog/spdlog.h>
+
 #include <array>
 #include <GLAD/glad.h>
 
@@ -36,13 +38,16 @@ namespace Internal
     }
 }
 
+const static auto c_InternalFormat{ GL_RGBA8 };
+const static auto c_DataFormat{ GL_RGBA };
+
 Texture2D::Texture2D(const Texture2DProps& props)
     : m_Size{ props.Size }, m_Wrapping{ props.Wrapping }, m_Filtering{ props.Filtering }
 {
     glCreateTextures(GL_TEXTURE_2D, 1, &m_RendererID);
-    glTextureStorage2D(m_RendererID, 1, GL_RGBA8, static_cast<RendererSizei>(m_Size.x), static_cast<RendererSizei>(m_Size.y));
+    glTextureStorage2D(m_RendererID, 1, c_InternalFormat, static_cast<RendererSizei>(m_Size.x), static_cast<RendererSizei>(m_Size.y));
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, static_cast<RendererSizei>(m_Size.x), static_cast<RendererSizei>(m_Size.y), 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+    glTexImage2D(GL_TEXTURE_2D, 0, c_InternalFormat, static_cast<RendererSizei>(m_Size.x), static_cast<RendererSizei>(m_Size.y), 0, c_DataFormat, GL_UNSIGNED_BYTE, nullptr);
 
     glTextureParameteri(m_RendererID, GL_TEXTURE_MIN_FILTER, Internal::GetGLTextureFiltering(m_Filtering));
     glTextureParameteri(m_RendererID, GL_TEXTURE_MAG_FILTER, Internal::GetGLTextureFiltering(m_Filtering));
@@ -54,6 +59,17 @@ Texture2D::Texture2D(const Texture2DProps& props)
 Texture2D::~Texture2D()
 {
     glDeleteTextures(1, &m_RendererID);
+}
+
+void Texture2D::SetData(void* data, std::size_t size)
+{
+    if (size != m_Size.x * m_Size.y * 4u)
+    {
+        spdlog::error("[OpenGL](Texture2D) Texture data must be the entire texture!");
+        return;
+    }
+
+    glTextureSubImage2D(m_RendererID, 0u, 0u, 0u, m_Size.x, m_Size.y, c_DataFormat, GL_UNSIGNED_BYTE, data);
 }
 
 void Texture2D::Bind() const

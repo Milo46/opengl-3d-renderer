@@ -7,19 +7,34 @@ RENDERER_CODE_BEGIN
 
 struct PerspectiveProjection
 {
+    glm::vec3 Position{ 0.0f, 0.0f, 0.0f, };
+    glm::vec3 Direction{ 0.0f, 0.0f, 1.0f, };
 
+    float Fov{ 45.0f };
+    float Ratio{ 1.0f };
+    float Near{ 0.1f };
+    float Far{ 1000.0f };
 };
 
 class PerspectiveCamera : public Camera
 {
 public:
+    inline static const float c_Yaw{ -90.0f };
+    inline static const float c_Pitch{ 0.0f };
+    inline static const float c_Roll{ 0.0 };
+    inline static const float c_Zoom{ 45.0f };
+
+public:
+    explicit PerspectiveCamera(const PerspectiveProjection& props);
 
 public:
     virtual const glm::mat4& GetViewMatrix() const override;
     virtual const glm::mat4& GetProjectionMatrix() const override;
 
+    const glm::vec3& GetPosition() const;
+
 private:
-    void UdpateData();
+    void UpdateData();
 
 private:
     glm::mat4 m_ViewMatrix{};

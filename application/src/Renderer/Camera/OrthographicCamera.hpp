@@ -7,17 +7,17 @@ RENDERER_CODE_BEGIN
 
 struct OrthographicProjection
 {
-    float Left{ 0.0f };
-    float Right{ 0.0f };
-    float Bottom{ 0.0f };
-    float Top{ 0.0f };
+    float Left  { -1.0f };
+    float Right {  1.0f };
+    float Bottom{ -1.0f };
+    float Top   {  1.0f };
 };
 
 class OrthographicCamera : public Camera
 {
 public:
-    OrthographicCamera(const OrthographicProjection& projection);
-    void SetProjection(const OrthographicProjection& projection);
+    OrthographicCamera(const OrthographicProjection& projection = {});
+    void SetProjection(const OrthographicProjection& projection = {});
 
     OrthographicCamera& SetPosition(const glm::vec3& position) noexcept;
     OrthographicCamera& SetRotation(float rotation) noexcept;

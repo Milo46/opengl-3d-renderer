@@ -5,12 +5,15 @@
 RENDERER_CODE_BEGIN
 
 OrthographicCamera::OrthographicCamera(const OrthographicProjection& projection)
-    : m_ProjectionMatrix{ glm::ortho(projection.Left, projection.Right, projection.Bottom, projection.Top) },
-      m_ViewMatrix{ glm::identity<glm::mat4>() } {}
+    : m_ProjectionMatrix{ glm::ortho(projection.Left, projection.Right, projection.Bottom, projection.Top, -1.0f, 1.0f) },
+      m_ViewMatrix{ glm::identity<glm::mat4>() }
+{
+    OrthographicCamera::UpdateData();
+}
 
 void OrthographicCamera::SetProjection(const OrthographicProjection& projection)
 {
-    m_ProjectionMatrix = glm::ortho(projection.Left, projection.Right, projection.Bottom, projection.Top);
+    m_ProjectionMatrix = glm::ortho(projection.Left, projection.Right, projection.Bottom, projection.Top, -1.0f, 1.0f);
 }
 
 OrthographicCamera& OrthographicCamera::SetPosition(const glm::vec3& position) noexcept

@@ -48,12 +48,14 @@ private:
     void OnRenderImGui(ImGuiIO& io, const float& deltaTime) noexcept;
 
     void PanelViewport(ImGuiIO& io, const float& deltaTime);
-    void PanelShader();
+    void PanelShader(ImGuiIO& io, const float& deltaTime);
 
 private:
     std::unique_ptr<Window> m_Window;
     std::unique_ptr<ImGuiBuildContext> m_ImGuiContext;
+
     Renderer::OrthographicCamera m_Camera;
+    Renderer::PerspectiveCamera m_PerspectiveCamera;
 
     // std::unique_ptr<Renderer> m_Renderer;
     // std::stack<State*> m_States{};
@@ -65,7 +67,5 @@ private:
     Renderer::RendererID m_Renderbuffer{ 0u };
     std::shared_ptr<Renderer::Texture2D> m_TextureColorbuffer{ 0u };
 
-    std::shared_ptr<Renderer::VertexArray> m_RectangleVA{};
-    std::shared_ptr<Renderer::Shader> m_CustomShader{};
-    Renderer::ShaderDataExtractor m_CustomShaderData{};
+    Renderer::ShaderDataExtractor m_ShaderData{};
 };

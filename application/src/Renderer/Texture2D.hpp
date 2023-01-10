@@ -36,9 +36,9 @@ enum class TextureFiltering
 struct Texture2DProps
 {
     const glm::vec2 Size{ 1u, 1u };
-
     const TextureWrapping Wrapping{ TextureWrapping::Repeat };
     const TextureFiltering Filtering{ TextureFiltering::Linear };
+    const std::string Filepath{ "" }; // doesn't yet support loading from file
 };
 
 class Texture2D
@@ -57,6 +57,8 @@ public:
     inline auto GetWidth() const noexcept { return m_Size.x; }
     inline auto GetHeight() const noexcept { return m_Size.y; }
 
+    void SetData(void* data, std::size_t size);
+
 public:
     virtual void Bind() const override;
     virtual void Unbind() const override;
@@ -65,6 +67,7 @@ public:
     bool LoadFilepath(const std::string& path);
 
 private:
+    std::string m_Filepath{};
     glm::vec2 m_Size{};
 
     TextureWrapping m_Wrapping{};

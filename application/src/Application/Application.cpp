@@ -13,12 +13,14 @@
 Application::Application(const ApplicationProps& props) noexcept
     : m_Window      { std::make_unique<Window>(props.Name, props.WindowSize) },
       m_ImGuiContext{ std::make_unique<ImGuiBuildContext>()                  },
-      m_Camera      { { -1.0f, 1.0f, -1.0f, 1.0f, },                         }
+      m_PerspectiveCamera{ { { 0.0f, 0.0f, -2.0f, } } }
 {
-    // m_Window->AddKeybinds({
-        // { WindowAction::Miximize, { GLFW_KEY_F10, }, },
-        // { WindowAction::Iconify,  { GLFW_KEY_F9,  }, },
-    // });
+    m_Camera.SetPosition({ 0.0f, 0.0f, 0.0f, });
+
+    m_Window->AddKeybinds({
+        { WindowAction::Miximize, { GLFW_KEY_F10, }, },
+        { WindowAction::Iconify,  { GLFW_KEY_F9,  }, },
+    });
 
     m_Window->SetVSync(true);
 }
@@ -41,16 +43,7 @@ bool Application::Initialize() noexcept
         { [this]() { return m_ImGuiContext->Initialize(m_Window); }, "Failed to initialize ImGui context!", },
     })) return false;
 
-    m_CustomShader = Renderer::Create<Renderer::Shader>({
-        .Sources = {
-            { Renderer::ShaderType::Vertex,   { "assets/shaders/vertex.glsl",   }, },
-            { Renderer::ShaderType::Fragment, { "assets/shaders/fragment.glsl", }, },
-        },
-    });
-    spdlog::info("Custom shader compilation result: {}", m_CustomShader->Compile());
-    spdlog::info("Custom shader linking result: {}", m_CustomShader->Link());
-
-    m_CustomShaderData.Extract(m_CustomShader);
+    m_ShaderData.Extract(Renderer::Renderer2D::GetFlatShader());
 
     glGenFramebuffers(1, &m_Framebuffer);
     glBindFramebuffer(GL_FRAMEBUFFER, m_Framebuffer);
@@ -74,25 +67,6 @@ bool Application::Initialize() noexcept
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0u);
 
-    std::vector<float> vertices{ 0.5f,  0.5f, 0.0f, 0.5f, -0.5f, 0.0f, -0.5f, -0.5f, 0.0f, -0.5f,  0.5f, 0.0f, };
-    std::vector<unsigned int> indices{ 0u, 1u, 3u, 1u, 2u, 3u, };
-
-    auto vertexBuffer{ Renderer::Create<Renderer::VertexBuffer, Renderer::Extension::VertexBufferPropsVector>({
-        .VectorData = vertices,
-        .Layout = {
-            { Renderer::LayoutDataType::Float3, "a_Position", },
-        },
-    }) };
-
-    auto indexBuffer{ Renderer::Create<Renderer::IndexBuffer, Renderer::Extension::IndexBufferPropsVector>({
-        .VectorData = indices,
-    }) };
-
-    m_RectangleVA = Renderer::Create<Renderer::VertexArray>({
-        .VertexBuffer = vertexBuffer,
-        .IndexBuffer  = indexBuffer,
-    });
-
     return true;
 }
 
@@ -112,12 +86,12 @@ void Application::Run() noexcept
         glBindFramebuffer(GL_FRAMEBUFFER, m_Framebuffer);
         glEnable(GL_DEPTH_TEST);
 
-        m_TriangleCount = 0u;
-
         glPolygonMode(GL_FRONT_AND_BACK, m_WireframeMode ? GL_LINE : GL_FILL);
 
         Application::OnUpdate(deltaTime);
         Application::OnRenderViewport();
+
+        m_TriangleCount = Renderer::Renderer2D::GetTriangleCount();
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glDisable(GL_DEPTH_TEST);
@@ -144,17 +118,18 @@ void Application::OnRenderViewport() noexcept
     Renderer::RenderCommand::SetClearColor({ 0.2f, 0.4f, 0.6f, 1.0f, });
     Renderer::RenderCommand::Clear();
 
-    // m_CustomShader->Bind();
-    // m_CustomShader->SetUniform("u_Time", static_cast<float>(glfwGetTime()));
-    // m_CustomShader->SetUniform("u_Color", glm::vec3{ 0.8f, 0.2f, 0.2f, });
+    const glm::vec3& rectangleColor1{ .3f, .5f, .0f, };
+    const glm::vec3& rectangleColor2{ 1.f, .3f, .3f, };
 
-    // m_RectangleVA->Bind();
-    // glDrawElements(GL_TRIANGLES, m_RectangleVA->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, nullptr);
-    // m_TriangleCount += m_RectangleVA->GetIndexBuffer()->GetCount() / 3.0f;
+    // TODO: Make perspective camera work, maybe it can fix the Z-buffer issue.
+    Renderer::Renderer2D::BeginScene(&m_Camera);
+    // Renderer::Renderer2D::BeginScene(&m_PerspectiveCamera);
 
-    Renderer::Renderer2D::BeginScene(m_Camera);
-    Renderer::Renderer2D::DrawRectangle({ 1.0f, 1.0f, 0.0f, }, { 1.0f, 0.0f, 0.0f, }, { 0.3f, 0.5f, 0.0f, });
-    // Renderer::Renderer2D::DrawRectangle({ 0.75f, 0.75f, 0.0f, }, { 100.0f, 0.25f, 0.0f, }, { 1.0f, 0.3f, 0.3f, });
+    // TODO: Z-buffer doesn't change anything in rendering process, but it should! Make Z-buffer matter.
+    Renderer::Renderer2D::DrawRectangle({ 1.0f, 1.0f, 0.0f, }, { 0.0f, 0.0f, 0.0f, }, rectangleColor1 + rectangleColor2);
+
+    Renderer::Renderer2D::DrawRectangle({ 0.5f, 0.5f, 0.0f, }, { 0.5f, 0.5f, 0.0f, }, rectangleColor1);
+    Renderer::Renderer2D::DrawRectangle({ 0.75f, 0.75f, 0.0f, }, { 0.0f, 0.25f, 0.0f, }, rectangleColor2);
     Renderer::Renderer2D::EndScene();
 }
 
@@ -182,7 +157,7 @@ void Application::OnRenderImGui(ImGuiIO& io, const float& deltaTime) noexcept
     ImGui::ShowDemoWindow();
 
     Application::PanelViewport(io, deltaTime);
-    Application::PanelShader();
+    Application::PanelShader(io, deltaTime);
 }
 
 void Application::PanelViewport(ImGuiIO& io, const float& deltaTime)
@@ -223,11 +198,11 @@ void Application::PanelViewport(ImGuiIO& io, const float& deltaTime)
     ImGui::PopStyleVar();
 }
 
-void Application::PanelShader()
+void Application::PanelShader(ImGuiIO& io, const float& deltaTime)
 {
     ImGui::Begin("Shader Preview");
 
-    const auto& shaderInfo{ m_CustomShaderData.ShaderData };
+    const auto& shaderInfo{ m_ShaderData.ShaderData };
     static std::size_t contentIndex{ 0u };
     static bool openPopup{ false };
 
