@@ -12,19 +12,19 @@
 
 #include "ImGui/ImGuiContext.hpp"
 
-class State
-{
-    friend class Application;
+// class State
+// {
+//     friend class Application;
 
-protected:
-    explicit State(const std::string_view name);
+// protected:
+//     explicit State(const std::string_view name);
 
-    virtual void OnInitialize()  = 0;
-    virtual void OnDestruction() = 0;
+//     virtual void OnInitialize()  = 0;
+//     virtual void OnDestruction() = 0;
 
-    virtual void OnUpdate() = 0;
-    virtual void OnRender(const float& deltaTime) = 0;
-};
+//     virtual void OnUpdate() = 0;
+//     virtual void OnRender(const float& deltaTime) = 0;
+// };
 
 struct ApplicationProps
 {
@@ -64,7 +64,6 @@ private:
 
     Renderer::RendererID m_Framebuffer{ 0u };
     Renderer::RendererID m_Renderbuffer{ 0u };
-    // Renderer::RendererID m_Depthbuffer{ 0u };
     std::shared_ptr<Renderer::Texture2D> m_TextureColorbuffer{ 0u };
 
     Renderer::ShaderDataExtractor m_ShaderData{};
