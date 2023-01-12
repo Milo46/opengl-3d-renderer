@@ -54,8 +54,7 @@ private:
     std::unique_ptr<Window> m_Window;
     std::unique_ptr<ImGuiBuildContext> m_ImGuiContext;
 
-    Renderer::OrthographicCamera m_Camera;
-    Renderer::PerspectiveCamera m_PerspectiveCamera;
+    Renderer::PerspectiveCamera m_Camera;
 
     // std::unique_ptr<Renderer> m_Renderer;
     // std::stack<State*> m_States{};
@@ -65,6 +64,7 @@ private:
 
     Renderer::RendererID m_Framebuffer{ 0u };
     Renderer::RendererID m_Renderbuffer{ 0u };
+    // Renderer::RendererID m_Depthbuffer{ 0u };
     std::shared_ptr<Renderer::Texture2D> m_TextureColorbuffer{ 0u };
 
     Renderer::ShaderDataExtractor m_ShaderData{};

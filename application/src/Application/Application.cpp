@@ -13,10 +13,8 @@
 Application::Application(const ApplicationProps& props) noexcept
     : m_Window      { std::make_unique<Window>(props.Name, props.WindowSize) },
       m_ImGuiContext{ std::make_unique<ImGuiBuildContext>()                  },
-      m_PerspectiveCamera{ { { 0.0f, 0.0f, -2.0f, } } }
+      m_Camera      { { { 0.0f, 0.0f, 2.0f, }, }                             }
 {
-    m_Camera.SetPosition({ 0.0f, 0.0f, 0.0f, });
-
     m_Window->AddKeybinds({
         { WindowAction::Miximize, { GLFW_KEY_F10, }, },
         { WindowAction::Iconify,  { GLFW_KEY_F9,  }, },
@@ -34,6 +32,7 @@ bool Application::Initialize() noexcept
 {
     const auto rootFilepath{ std::filesystem::path{ __FILE__ }.append("../../../") };
     std::filesystem::current_path(rootFilepath);
+    spdlog::info("Root filepath: {}", rootFilepath.generic_string());
 
     if (!Checker::PerformSequence(spdlog::level::critical, {
         { [this]() { return Logger::Initialize();                 }, "Failed to initialize the logger!",    },
@@ -57,15 +56,13 @@ bool Application::Initialize() noexcept
     glGenRenderbuffers(1, &m_Renderbuffer);
     glBindRenderbuffer(GL_RENDERBUFFER, m_Renderbuffer);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, m_TextureColorbuffer->GetWidth(), m_TextureColorbuffer->GetHeight());
-    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_Renderbuffer);
 
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
     {
         spdlog::critical("Framebuffer is not complete!");
         return false;
     }
-
-    glBindFramebuffer(GL_FRAMEBUFFER, 0u);
 
     return true;
 }
@@ -85,8 +82,6 @@ void Application::Run() noexcept
 
         glBindFramebuffer(GL_FRAMEBUFFER, m_Framebuffer);
         glEnable(GL_DEPTH_TEST);
-
-        glPolygonMode(GL_FRONT_AND_BACK, m_WireframeMode ? GL_LINE : GL_FILL);
 
         Application::OnUpdate(deltaTime);
         Application::OnRenderViewport();
@@ -121,15 +116,10 @@ void Application::OnRenderViewport() noexcept
     const glm::vec3& rectangleColor1{ .3f, .5f, .0f, };
     const glm::vec3& rectangleColor2{ 1.f, .3f, .3f, };
 
-    // TODO: Make perspective camera work, maybe it can fix the Z-buffer issue.
     Renderer::Renderer2D::BeginScene(&m_Camera);
-    // Renderer::Renderer2D::BeginScene(&m_PerspectiveCamera);
-
-    // TODO: Z-buffer doesn't change anything in rendering process, but it should! Make Z-buffer matter.
-    Renderer::Renderer2D::DrawRectangle({ 1.0f, 1.0f, 0.0f, }, { 0.0f, 0.0f, 0.0f, }, rectangleColor1 + rectangleColor2);
-
+    Renderer::Renderer2D::DrawRectangle({ 1.0f, 1.0f, 0.0f, }, { 0.0f, 0.0f, 0.1f, }, rectangleColor1 + rectangleColor2);
     Renderer::Renderer2D::DrawRectangle({ 0.5f, 0.5f, 0.0f, }, { 0.5f, 0.5f, 0.0f, }, rectangleColor1);
-    Renderer::Renderer2D::DrawRectangle({ 0.75f, 0.75f, 0.0f, }, { 0.0f, 0.25f, 0.0f, }, rectangleColor2);
+    Renderer::Renderer2D::DrawRectangle({ 0.75f, 0.75f, 0.0f, }, { 0.0f, 0.25f, -0.1f, }, rectangleColor2);
     Renderer::Renderer2D::EndScene();
 }
 
@@ -187,7 +177,9 @@ void Application::PanelViewport(ImGuiIO& io, const float& deltaTime)
     ImGui::SetCursorPos(ImVec2(5, 85)); ImGui::Text("Triangles rendered: %d", m_TriangleCount);
     ImGui::SetCursorPos(ImVec2(5, 105));
     if (ImGui::Button("Toggle VSync"))
+    {
         m_Window->SetVSync(!m_Window->IsVSync());
+    }
     ImGui::SetCursorPos(ImVec2(5, 125));
     if (ImGui::Button("Toggle Wireframe"))
     {

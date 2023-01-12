@@ -5,7 +5,7 @@
 
 #include <spdlog/spdlog.h>
 
-// #include <spdlog/spdlog.h>
+#include <spdlog/spdlog.h>
 
 RENDERER_CODE_BEGIN
 
@@ -30,10 +30,10 @@ bool GraphicsContext::Initialize()
     glEnable(GL_DEPTH_TEST);
     glfwSwapInterval(1);
 
-    // spdlog::info("OpenGL info:");
-    // spdlog::info("\tVendor: {}", glGetString(GL_VENDOR));
-    // spdlog::info("\tRenderer: {}", glGetString(GL_RENDERER));
-    // spdlog::info("\tVersion: {}", glGetString(GL_VERSION));
+    spdlog::info("OpenGL info:");
+    spdlog::info("\tVendor: {}", glGetString(GL_VENDOR));
+    spdlog::info("\tRenderer: {}", glGetString(GL_RENDERER));
+    spdlog::info("\tVersion: {}", glGetString(GL_VERSION));
 
     return true;
 }

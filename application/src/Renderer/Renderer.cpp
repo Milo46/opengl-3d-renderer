@@ -111,6 +111,7 @@ bool Renderer2D::Initialize()
     });
 
     s_RendererData->FlatTexture = Create<Texture2D>({});
+    if (!s_RendererData->FlatTexture->LoadFilepath("assets/textures/wall.jpg")) {} //return false;
 
     s_RendererData->FlatShader = Create<Shader>({
         .Sources = {
@@ -155,6 +156,9 @@ void Renderer2D::EndScene()
 void Renderer2D::DrawRectangle(const glm::vec3& size, const glm::vec3& position, const glm::vec3& color)
 {
     const auto model{ ComposeModelMatrix(position, size) };
+
+    glActiveTexture(GL_TEXTURE0);
+    s_RendererData->FlatTexture->Bind();
 
     s_RendererData->FlatShader->SetUniform("u_ModelMatrix", model);
     s_RendererData->FlatShader->SetUniform("u_Color", color);

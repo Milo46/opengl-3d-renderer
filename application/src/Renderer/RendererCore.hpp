@@ -46,7 +46,7 @@ namespace Renderer
     template<typename _DefaultProps>
     struct Creatable { using DefaultPropsType = _DefaultProps; };
 
-    template<typename _ReturnType, typename _PropsType = _ReturnType::DefaultPropsType>
+    template<typename _ReturnType, typename _PropsType = typename _ReturnType::DefaultPropsType>
     inline auto Create(const _PropsType& props) noexcept -> std::shared_ptr<_ReturnType>;
 }
 

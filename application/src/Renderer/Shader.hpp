@@ -56,25 +56,9 @@ public:
     bool Compile() noexcept;
     bool Link() noexcept;
 
-public: // temporary, need to think about that
-    template<typename _Ty> inline void SetUniform(const std::string_view, const _Ty&) noexcept;
-    template<> inline void SetUniform<float>(const std::string_view name, const float& value) noexcept
-    {
-        const auto location{ glGetUniformLocation(m_RendererID, name.data()) };
-        glUniform1f(location, value);
-    }
-
-    template<> inline void SetUniform<glm::vec3>(const std::string_view name, const glm::vec3& value) noexcept
-    {
-        const auto location{ glGetUniformLocation(m_RendererID, name.data()) };
-        glUniform3f(location, value.x, value.y, value.z);
-    }
-
-    template<> inline void SetUniform<glm::mat4>(const std::string_view name, const glm::mat4& value) noexcept
-    {
-        const auto location{ glGetUniformLocation(m_RendererID, name.data()) };
-        glUniformMatrix4fv(location, 1u, GL_FALSE, glm::value_ptr(value));
-    }
+public:
+    template<typename _Ty>
+    inline void SetUniform(const std::string_view, const _Ty&) noexcept;
 
 public:
     virtual void Bind() const override;
@@ -110,3 +94,5 @@ struct ShaderDataExtractor
 };
 
 RENDERER_CODE_END
+
+#include "Shader.inl"

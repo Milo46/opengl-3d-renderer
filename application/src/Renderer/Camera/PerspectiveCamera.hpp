@@ -31,6 +31,7 @@ public:
     virtual const glm::mat4& GetViewMatrix() const override;
     virtual const glm::mat4& GetProjectionMatrix() const override;
 
+    PerspectiveCamera& SetPosition(const glm::vec3& position);
     const glm::vec3& GetPosition() const;
 
 private:
