@@ -55,6 +55,7 @@ private:
     std::unique_ptr<ImGuiBuildContext> m_ImGuiContext;
 
     Renderer::PerspectiveCamera m_Camera;
+    float m_UpdateAspectRatio{ 1.0f };
 
     // std::unique_ptr<Renderer> m_Renderer;
     // std::stack<State*> m_States{};

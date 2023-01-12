@@ -3,6 +3,8 @@
 #include "Renderer/RendererCore.hpp"
 #include "Renderer/Camera/Camera.hpp"
 
+#include "Window/Window.hpp"
+
 RENDERER_CODE_BEGIN
 
 struct PerspectiveProjection
@@ -26,6 +28,10 @@ public:
 
 public:
     explicit PerspectiveCamera(const PerspectiveProjection& props);
+
+public:
+    void OnUpdate(const std::unique_ptr<Window>& window);
+    void OnUpdate(float aspectRatio);
 
 public:
     virtual const glm::mat4& GetViewMatrix() const override;

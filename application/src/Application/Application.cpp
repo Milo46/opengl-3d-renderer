@@ -13,7 +13,10 @@
 Application::Application(const ApplicationProps& props) noexcept
     : m_Window      { std::make_unique<Window>(props.Name, props.WindowSize) },
       m_ImGuiContext{ std::make_unique<ImGuiBuildContext>()                  },
-      m_Camera      { { { 0.0f, 0.0f, 2.0f, }, }                             }
+      m_Camera{ {
+        .Position = { 0.0f, 0.0f, 2.0f, },
+        .Ratio = m_Window->GetAspectRatio(),
+      } }
 {
     m_Window->AddKeybinds({
         { WindowAction::Miximize, { GLFW_KEY_F10, }, },
@@ -79,6 +82,7 @@ void Application::Run() noexcept
         lastFrame = currentFrame;
 
         m_Window->OnUpdate();
+        m_Camera.OnUpdate(m_UpdateAspectRatio);
 
         glBindFramebuffer(GL_FRAMEBUFFER, m_Framebuffer);
         glEnable(GL_DEPTH_TEST);
@@ -188,6 +192,8 @@ void Application::PanelViewport(ImGuiIO& io, const float& deltaTime)
     }
     ImGui::End();
     ImGui::PopStyleVar();
+
+    m_UpdateAspectRatio = wsize.x / wsize.y;
 }
 
 void Application::PanelShader(ImGuiIO& io, const float& deltaTime)
