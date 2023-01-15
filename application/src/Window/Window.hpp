@@ -28,6 +28,7 @@ class Window : public NonCopyable<Window>
     friend void WindowFramebufferCallback(GLFWwindow*, int, int);
     friend void WindowKeyCallback(GLFWwindow*, int, int, int, int);
     friend void WindowFocusCallback(GLFWwindow*, int);
+    friend void WindowPositionCallback(GLFWwindow*, int, int);
 
 public:
     using KeybindsContainer = std::unordered_map<WindowAction, std::unordered_set<int>>;

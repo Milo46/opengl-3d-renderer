@@ -14,6 +14,9 @@ bool ImGuiBuildContext::Initialize(const std::unique_ptr<Window>& window) noexce
     m_IO->ConfigFlags |= ImGuiConfigFlags_DockingEnable;
     m_IO->ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
+    // I'm not sure if it is supposed to be here :/
+    m_IO->ConfigWindowsMoveFromTitleBarOnly = true;
+
     ImGui::StyleColorsDark();
     m_Style = &ImGui::GetStyle();
     if (m_IO->ConfigFlags & ImGuiConfigFlags_ViewportsEnable)

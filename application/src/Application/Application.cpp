@@ -72,14 +72,38 @@ bool Application::Initialize() noexcept
 
 void Application::Run() noexcept
 {
-    static float deltaTime{ 0.0f };
-    static float lastFrame{ 0.0f };
-
     while (m_Window->IsOpen())
     {
-        float currentFrame{ static_cast<float>(glfwGetTime()) };
-        deltaTime = currentFrame - lastFrame;
-        lastFrame = currentFrame;
+        const float currentTotalTime{ static_cast<float>(glfwGetTime()) };
+        m_Timestamp.DeltaTime = currentTotalTime - m_Timestamp.TotalTime;
+        m_Timestamp.TotalTime = currentTotalTime;
+
+        /* I really hate to place experimental code here.
+           It still only works if viewport is docked to the window, hopefully I'll find a better solution.
+           And it disables the buttons inside the viewport, what? */
+        // static bool holdingTheViewport{ false };
+        // double xpos{}, ypos{};
+        // glfwGetCursorPos(m_Window->GetNativeWindow(), &xpos, &ypos);
+        // if (xpos >= m_ViewportPosition.x && xpos <= m_ViewportPosition.x + m_ViewportSize.x &&
+        //     ypos >= m_ViewportPosition.y && ypos <= m_ViewportPosition.y + m_ViewportSize.y &&
+        //     glfwGetMouseButton(m_Window->GetNativeWindow(), GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS &&
+        //     holdingTheViewport == false)
+        // {
+        //     holdingTheViewport = true;
+        //     spdlog::info("Cursor is holding the viewport!");
+
+        //     glfwSetInputMode(m_Window->GetNativeWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        // }
+        
+        // if (glfwGetMouseButton(m_Window->GetNativeWindow(), GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE &&
+        //     holdingTheViewport == true)
+        // {
+        //     holdingTheViewport = false;
+        //     spdlog::info("Cursor released the viewport!");
+
+        //     glfwSetInputMode(m_Window->GetNativeWindow(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        // }
+        // Here ends the bullshit.
 
         m_Window->OnUpdate();
         m_Camera.OnUpdate(m_UpdateAspectRatio);
@@ -87,7 +111,7 @@ void Application::Run() noexcept
         glBindFramebuffer(GL_FRAMEBUFFER, m_Framebuffer);
         glEnable(GL_DEPTH_TEST);
 
-        Application::OnUpdate(deltaTime);
+        Application::OnUpdate(m_Timestamp);
         Application::OnRenderViewport();
 
         m_TriangleCount = Renderer::Renderer2D::GetTriangleCount();
@@ -97,7 +121,7 @@ void Application::Run() noexcept
         glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
         m_ImGuiContext->PreRender();
-        Application::OnRenderImGui(m_ImGuiContext->GetIO(), deltaTime);
+        Application::OnRenderImGui(m_ImGuiContext->GetIO(), m_Timestamp);
         m_ImGuiContext->PostRender();
     }
 }
@@ -107,7 +131,7 @@ void Application::Shutdown() noexcept
     m_ImGuiContext->Shutdown();
 }
 
-void Application::OnUpdate(const float& deltaTime) noexcept
+void Application::OnUpdate(const Timestamp& timestamp) noexcept
 {
 }
 
@@ -127,7 +151,7 @@ void Application::OnRenderViewport() noexcept
     Renderer::Renderer2D::EndScene();
 }
 
-void Application::OnRenderImGui(ImGuiIO& io, const float& deltaTime) noexcept
+void Application::OnRenderImGui(ImGuiIO& io, const Timestamp& timestamp) noexcept
 {
     static ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar |
         ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
@@ -150,11 +174,11 @@ void Application::OnRenderImGui(ImGuiIO& io, const float& deltaTime) noexcept
 
     ImGui::ShowDemoWindow();
 
-    Application::PanelViewport(io, deltaTime);
-    Application::PanelShader(io, deltaTime);
+    Application::PanelViewport(io, timestamp);
+    Application::PanelShader(io, timestamp);
 }
 
-void Application::PanelViewport(ImGuiIO& io, const float& deltaTime)
+void Application::PanelViewport(ImGuiIO& io, const Timestamp& timestamp)
 {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
     ImGui::Begin("Viewport", nullptr, ImGuiWindowFlags_NoScrollbar /*| ImGuiWindowFlags_MenuBar*/);
@@ -177,7 +201,7 @@ void Application::PanelViewport(ImGuiIO& io, const float& deltaTime)
     ImGui::Image(reinterpret_cast<ImTextureID>(m_TextureColorbuffer->GetHandle()), wsize, ImVec2(0, 1), ImVec2(1, 0));
     ImGui::SetCursorPos(ImVec2(5, 25)); ImGui::Text("Viewport Size: (%f, %f)", wsize.x, wsize.y);
     ImGui::SetCursorPos(ImVec2(5, 45)); ImGui::Text("FPS ImGui: %f", 1.0f / io.DeltaTime);
-    ImGui::SetCursorPos(ImVec2(5, 65)); ImGui::Text("FPS Viewport: %f", 1.0f / deltaTime);
+    ImGui::SetCursorPos(ImVec2(5, 65)); ImGui::Text("FPS Viewport: %f", 1.0f / timestamp.DeltaTime);
     ImGui::SetCursorPos(ImVec2(5, 85)); ImGui::Text("Triangles rendered: %d", m_TriangleCount);
     ImGui::SetCursorPos(ImVec2(5, 105));
     if (ImGui::Button("Toggle VSync"))
@@ -190,13 +214,41 @@ void Application::PanelViewport(ImGuiIO& io, const float& deltaTime)
         glPolygonMode(GL_FRONT_AND_BACK, m_WireframeMode ? GL_LINE : GL_FILL);
         m_WireframeMode = !m_WireframeMode;
     }
+
+    // { // yellow-rectangle-begin
+    //     auto vMin{ ImGui::GetWindowContentRegionMin() };
+    //     auto vMax{ ImGui::GetWindowContentRegionMax() };
+    //     vMin.x += ImGui::GetWindowPos().x;
+    //     vMin.y += ImGui::GetWindowPos().y;
+    //     vMax.x += ImGui::GetWindowPos().x;
+    //     vMax.y += ImGui::GetWindowPos().y;
+    //     ImGui::GetForegroundDrawList()->AddRect(vMin, vMax, IM_COL32(255, 255, 0, 255));
+    // } // yellow-rectangle-end
+
+    // update-viewport-size-and-position-begin
+    {
+        const auto& [minx, miny]{ ImGui::GetWindowContentRegionMin() };
+        const auto& [maxx, maxy]{ ImGui::GetWindowContentRegionMax() };
+
+        const auto& windowPosition{ m_Window->GetPosition() };
+        const auto& viewportPosition{ ImGui::GetWindowPos() };
+
+        m_ViewportPosition = {
+            (minx + viewportPosition.x) - windowPosition.x,
+            (miny + viewportPosition.y) - windowPosition.y,
+        };
+
+        m_ViewportSize = { maxx - minx, maxy - miny, };
+    }
+    // update-viewport-size-and-position-end
+
     ImGui::End();
     ImGui::PopStyleVar();
 
     m_UpdateAspectRatio = wsize.x / wsize.y;
 }
 
-void Application::PanelShader(ImGuiIO& io, const float& deltaTime)
+void Application::PanelShader(ImGuiIO& io, const Timestamp& timestamp)
 {
     ImGui::Begin("Shader Preview");
 

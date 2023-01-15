@@ -18,7 +18,7 @@ static void GLFWErrorCallback(int error, const char* desc) noexcept
     spdlog::error("GLFW Error {}: {}", error, desc);
 }
 
-static void WindowFramebufferCallback(GLFWwindow* window, int width, int height)
+void WindowFramebufferCallback(GLFWwindow* window, int width, int height)
 {
     auto userPointer{ static_cast<Window*>(glfwGetWindowUserPointer(window)) };
 
@@ -28,7 +28,7 @@ static void WindowFramebufferCallback(GLFWwindow* window, int width, int height)
     glViewport(0, 0, width, height);
 }
 
-static void WindowKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
+void WindowKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
     auto userPointer{ static_cast<Window*>(glfwGetWindowUserPointer(window)) };
 
@@ -59,10 +59,16 @@ static void WindowKeyCallback(GLFWwindow* window, int key, int scancode, int act
     }
 }
 
-static void WindowFocusCallback(GLFWwindow* window, int focused)
+void WindowFocusCallback(GLFWwindow* window, int focused)
 {
     auto userPointer{ static_cast<Window*>(glfwGetWindowUserPointer(window)) };
     userPointer->m_IsFocused = static_cast<bool>(focused);
+}
+
+void WindowPositionCallback(GLFWwindow* window, int xpos, int ypos)
+{
+    auto userPointer{ static_cast<Window*>(glfwGetWindowUserPointer(window)) };
+    userPointer->m_Position = { xpos, ypos, };
 }
 
 Window::Window(const std::string_view title, const glm::ivec2& size) noexcept
@@ -101,6 +107,7 @@ bool Window::Initialize() noexcept
     glfwSetFramebufferSizeCallback(m_Window, WindowFramebufferCallback);
     glfwSetKeyCallback(m_Window, WindowKeyCallback);
     glfwSetWindowFocusCallback(m_Window, WindowFocusCallback);
+    glfwSetWindowPosCallback(m_Window, WindowPositionCallback);
 
     return true;
 }

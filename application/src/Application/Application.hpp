@@ -26,6 +26,12 @@
 //     virtual void OnRender(const float& deltaTime) = 0;
 // };
 
+struct Timestamp // or Timepoint? Help.
+{
+    float TotalTime{};
+    float DeltaTime{};
+};
+
 struct ApplicationProps
 {
     const std::string_view Name;
@@ -43,25 +49,29 @@ public:
     void Shutdown() noexcept;
 
 private:
-    void OnUpdate(const float& deltaTime) noexcept;
+    void OnUpdate(const Timestamp& timestamp) noexcept;
     void OnRenderViewport() noexcept;
-    void OnRenderImGui(ImGuiIO& io, const float& deltaTime) noexcept;
+    void OnRenderImGui(ImGuiIO& io, const Timestamp& timestamp) noexcept;
 
-    void PanelViewport(ImGuiIO& io, const float& deltaTime);
-    void PanelShader(ImGuiIO& io, const float& deltaTime);
+    void PanelViewport(ImGuiIO& io, const Timestamp& timestamp);
+    void PanelShader(ImGuiIO& io, const Timestamp& timestamp);
 
 private:
     std::unique_ptr<Window> m_Window;
     std::unique_ptr<ImGuiBuildContext> m_ImGuiContext;
+    Timestamp m_Timestamp{};
 
     Renderer::PerspectiveCamera m_Camera;
     float m_UpdateAspectRatio{ 1.0f };
+
+    glm::vec2 m_ViewportPosition{};
+    glm::vec2 m_ViewportSize{};
 
     // std::unique_ptr<Renderer> m_Renderer;
     // std::stack<State*> m_States{};
 
     std::size_t m_TriangleCount{ 0u };
-    bool m_WireframeMode{ false };
+    bool m_WireframeMode{ true };
 
     Renderer::RendererID m_Framebuffer{ 0u };
     Renderer::RendererID m_Renderbuffer{ 0u };
