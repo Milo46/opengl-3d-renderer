@@ -41,7 +41,6 @@ bool Application::Initialize() noexcept
         { [this]() { return Logger::Initialize();                 }, "Failed to initialize the logger!",    },
         { [this]() { return m_Window->Initialize();               }, "Failed to initialize the window!",    },
         { [this]() { return Renderer::Renderer2D::Initialize();   }, "Failed to initialize the renderer!",  },
-        // { [this]() { return m_Renderer->Initialize();             }, "Failed to initialize the renderer!",  },
         { [this]() { return m_ImGuiContext->Initialize(m_Window); }, "Failed to initialize ImGui context!", },
     })) return false;
 
@@ -50,10 +49,7 @@ bool Application::Initialize() noexcept
     glGenFramebuffers(1, &m_Framebuffer);
     glBindFramebuffer(GL_FRAMEBUFFER, m_Framebuffer);
 
-    m_TextureColorbuffer = Renderer::Create<Renderer::Texture2D>({
-        .Size = { 800u, 600u, },
-    });
-
+    m_TextureColorbuffer = Renderer::Create<Renderer::Texture2D>({ .Size = { 800u, 600u, }, });
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_TextureColorbuffer->GetHandle(), 0);
 
     glGenRenderbuffers(1, &m_Renderbuffer);
@@ -118,8 +114,10 @@ void Application::Run() noexcept
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glDisable(GL_DEPTH_TEST);
-        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+
+        Renderer::RenderCommand::SetClearColor(glm::vec4(1.0f));
+        Renderer::RenderCommand::Clear();
+
         m_ImGuiContext->PreRender();
         Application::OnRenderImGui(m_ImGuiContext->GetIO(), m_Timestamp);
         m_ImGuiContext->PostRender();
@@ -133,6 +131,15 @@ void Application::Shutdown() noexcept
 
 void Application::OnUpdate(const Timestamp& timestamp) noexcept
 {
+    const float radius{ 2.0f };
+
+    glm::vec3 newPosition{};
+    newPosition.x = radius * sin(timestamp.TotalTime);
+    newPosition.z = radius * cos(timestamp.TotalTime);
+
+    m_Camera
+        .SetPosition(newPosition)
+        .SetLookDirection(glm::vec3(0.0f));
 }
 
 void Application::OnRenderViewport() noexcept
@@ -145,9 +152,9 @@ void Application::OnRenderViewport() noexcept
     const glm::vec3& rectangleColor2{ 1.f, .3f, .3f, };
 
     Renderer::Renderer2D::BeginScene(&m_Camera);
-    Renderer::Renderer2D::DrawRectangle({ 1.0f, 1.0f, 0.0f, }, { 0.0f, 0.0f, 0.1f, }, rectangleColor1 + rectangleColor2);
-    Renderer::Renderer2D::DrawRectangle({ 0.5f, 0.5f, 0.0f, }, { 0.5f, 0.5f, 0.0f, }, rectangleColor1);
-    Renderer::Renderer2D::DrawRectangle({ 0.75f, 0.75f, 0.0f, }, { 0.0f, 0.25f, -0.1f, }, rectangleColor2);
+    Renderer::Renderer2D::DrawPlane({ 1.0f, 1.0f, 0.0f, }, { 0.0f, 0.0f, 0.1f, }, rectangleColor1 + rectangleColor2);
+    Renderer::Renderer2D::DrawPlane({ 0.5f, 0.5f, 0.0f, }, { 0.5f, 0.5f, 0.0f, }, rectangleColor1);
+    Renderer::Renderer2D::DrawPlane({ 0.75f, 0.75f, 0.0f, }, { 0.0f, 0.25f, -0.1f, }, rectangleColor2);
     Renderer::Renderer2D::EndScene();
 }
 
