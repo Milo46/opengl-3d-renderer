@@ -85,6 +85,7 @@ private:
     glm::ivec2 m_Size;
     glm::ivec2 m_SizeBackup;
     glm::ivec2 m_Position;
+    glm::ivec2 m_PositionBackup;
 
     bool m_IsFullscreen{ false };
     bool m_IsFocused{ true };
