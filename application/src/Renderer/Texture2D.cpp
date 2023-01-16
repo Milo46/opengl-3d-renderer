@@ -88,32 +88,34 @@ bool Texture2D::LoadFilepath(const std::string& path)
     int width{}, height{}, channels{};
     stbi_set_flip_vertically_on_load(1);
 
-    auto* data = stbi_load("D:/opengl-3d-renderer/application/assets/textures/container.jpg", &width, &height, &channels, 0);
+    auto* data = stbi_load(path.c_str(), &width, &height, &channels, 0);
     spdlog::info("{} {} {}", width, height, channels);
 
     if (!data)
     {
         if (stbi_failure_reason())
-            spdlog::error("[stbi_image]: {}", stbi_failure_reason());
+            spdlog::error("[stbi_image]: {}: {}", stbi_failure_reason(), path);
+        else
+            spdlog::error("[stbi_image]: failed without any reason: {}", path);
 
         return false;
     }
 
     m_Size = { width, height };
-    auto internalFormat = channels == 4 ? GL_RGBA8 : channels == 3 ? GL_RGB8 : 0;
-    auto dataFormat     = channels == 4 ? GL_RGBA  : channels == 3 ? GL_RGB  : 0;
+    auto internalFormat{ channels == 4 ? GL_RGBA8 : channels == 3 ? GL_RGB8 : 0 };
+    auto dataFormat    { channels == 4 ? GL_RGBA  : channels == 3 ? GL_RGB  : 0 };
 
     if (m_RendererID) glDeleteTextures(1, &m_RendererID);
     glCreateTextures(GL_TEXTURE_2D, 1, &m_RendererID);
 
     glTextureStorage2D(m_RendererID, 1, internalFormat, width, height);
-    // glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, dataFormat, GL_UNSIGNED_BYTE, data);
     glTextureSubImage2D(m_RendererID, 0, 0, 0, width, height, dataFormat, GL_UNSIGNED_BYTE, data);
 
-    // glCreateTextures(GL_TEXTURE_2D, 1, &m_RendererID);
-    // glTextureStorage2D(m_RendererID, 1, internalFormat, m_Size.width, m_Size.height);
+    glTextureParameteri(m_RendererID, GL_TEXTURE_MIN_FILTER, Internal::GetGLTextureFiltering(m_Filtering));
+    glTextureParameteri(m_RendererID, GL_TEXTURE_MAG_FILTER, Internal::GetGLTextureFiltering(m_Filtering));
 
-    // glTextureSubImage2D(m_RendererID, 0, 0, 0, )
+    glTextureParameteri(m_RendererID, GL_TEXTURE_WRAP_S, Internal::GetGLTextureWrapping(m_Wrapping));
+    glTextureParameteri(m_RendererID, GL_TEXTURE_WRAP_T, Internal::GetGLTextureWrapping(m_Wrapping));
 
     stbi_image_free(data);
 
