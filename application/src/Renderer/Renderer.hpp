@@ -21,11 +21,10 @@ public:
     static bool Initialize();
     static void Shutdown();
 
-    static void BeginScene(const OrthographicCamera& camera);
     static void BeginScene(const Camera* camera);
     static void EndScene();
 
-    static void DrawRectangle(const glm::vec3& size, const glm::vec3& position, const glm::vec3& color = glm::vec3(1.0f));
+    static void DrawPlane(const glm::vec3& size, const glm::vec3& position, const glm::vec3& color = glm::vec3(1.0f));
 };
 
 RENDERER_CODE_END

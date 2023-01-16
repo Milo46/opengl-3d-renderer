@@ -39,7 +39,7 @@ struct RendererVertex
 
 struct RendererData
 {
-    std::shared_ptr<VertexArray> RectangleVA;
+    std::shared_ptr<VertexArray> PlaneVArray;
     std::shared_ptr<Texture2D> FlatTexture;
     std::shared_ptr<Shader> FlatShader;
 
@@ -105,13 +105,13 @@ bool Renderer2D::Initialize()
         .Count = rectangleIndices.size(),
     }) };
 
-    s_RendererData->RectangleVA = Create<VertexArray>({
+    s_RendererData->PlaneVArray = Create<VertexArray>({
         .VertexBuffer = vertexBuffer,
         .IndexBuffer  = indexBuffer,
     });
 
     s_RendererData->FlatTexture = Create<Texture2D>({});
-    if (!s_RendererData->FlatTexture->LoadFilepath("assets/textures/wall.jpg")) {} //return false;
+    if (!s_RendererData->FlatTexture->LoadFilepath("assets/textures/container.jpg")) {} //return false;
 
     s_RendererData->FlatShader = Create<Shader>({
         .Sources = {
@@ -130,15 +130,6 @@ void Renderer2D::Shutdown()
     delete s_RendererData;
 }
 
-void Renderer2D::BeginScene(const OrthographicCamera& camera)
-{
-    s_RendererData->TrianglesCountTemp = 0u;
-
-    s_RendererData->FlatShader->Bind();
-    s_RendererData->FlatShader->SetUniform("u_ViewMatrix", camera.GetViewMatrix());
-    s_RendererData->FlatShader->SetUniform("u_ProjectionMatrix", camera.GetProjectionMatrix());
-}
-
 void Renderer2D::BeginScene(const Camera* camera)
 {
     s_RendererData->TrianglesCountTemp = 0u;
@@ -153,7 +144,7 @@ void Renderer2D::EndScene()
     s_RendererData->TrianglesCount = s_RendererData->TrianglesCountTemp;
 }
 
-void Renderer2D::DrawRectangle(const glm::vec3& size, const glm::vec3& position, const glm::vec3& color)
+void Renderer2D::DrawPlane(const glm::vec3& size, const glm::vec3& position, const glm::vec3& color)
 {
     const auto model{ ComposeModelMatrix(position, size) };
 
@@ -163,11 +154,11 @@ void Renderer2D::DrawRectangle(const glm::vec3& size, const glm::vec3& position,
     s_RendererData->FlatShader->SetUniform("u_ModelMatrix", model);
     s_RendererData->FlatShader->SetUniform("u_Color", color);
 
-    s_RendererData->RectangleVA->Bind();
-    RenderCommand::DrawIndexed(s_RendererData->RectangleVA);
+    s_RendererData->PlaneVArray->Bind();
+    RenderCommand::DrawIndexed(s_RendererData->PlaneVArray);
 
     s_RendererData->TrianglesCountTemp +=
-        s_RendererData->RectangleVA->GetIndexBuffer()->GetCount() / 3u;
+        s_RendererData->PlaneVArray->GetIndexBuffer()->GetCount() / 3u;
 }
 
 RENDERER_CODE_END
