@@ -8,7 +8,9 @@ RENDERER_CODE_BEGIN
 PerspectiveCamera::PerspectiveCamera(const PerspectiveProjection& props)
     : m_Position{ props.Position },
       m_WorldUp{ 0.0f, 1.0f, 0.0f, },
-      m_ProjectionMatrix{ glm::perspective(props.Fov, props.Ratio, props.Near, props.Far) }
+      m_ProjectionMatrix{ glm::perspective(props.Fov, props.Ratio, props.Near, props.Far) },
+      m_NearPlane{ props.Near },
+      m_FarPlane{ props.Far }
 {
     PerspectiveCamera::UpdateData();
 }
@@ -20,10 +22,7 @@ void PerspectiveCamera::OnUpdate(const std::unique_ptr<Window>& window)
 
 void PerspectiveCamera::OnUpdate(float aspectRatio)
 {
-    const auto nearPlane{ 0.1f };
-    const auto farPlane{ 1000.0f };
-
-    m_ProjectionMatrix = glm::perspective(glm::radians(m_Zoom), aspectRatio, nearPlane, farPlane);
+    m_ProjectionMatrix = glm::perspective(glm::radians(m_Zoom), aspectRatio, m_NearPlane, m_FarPlane);
     m_ViewMatrix       = glm::lookAt(m_Position, m_Position + m_Front, m_Up);
 }
 
@@ -49,6 +48,12 @@ const glm::vec3& PerspectiveCamera::GetPosition() const
     return m_Position;
 }
 
+PerspectiveCamera& PerspectiveCamera::SetLookDirection(const glm::vec3& direction)
+{
+    m_ViewMatrix = glm::lookAt(m_Position, direction, m_Up);
+    return *this;
+}
+
 void PerspectiveCamera::UpdateData()
 {
     m_Front = glm::normalize(glm::vec3{
@@ -61,7 +66,6 @@ void PerspectiveCamera::UpdateData()
     m_Up    = glm::normalize(glm::cross(m_Right, m_Front));
 
     m_ViewMatrix = glm::lookAt(m_Position, m_Position + m_Front, m_Up);
-    // m_ViewMatrix = glm::lookAt(m_Position, glm::vec3(0.0f), m_Up);
 }
 
 RENDERER_CODE_END

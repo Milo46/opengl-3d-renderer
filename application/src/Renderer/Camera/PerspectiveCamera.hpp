@@ -29,7 +29,6 @@ public:
 public:
     explicit PerspectiveCamera(const PerspectiveProjection& props);
 
-public:
     void OnUpdate(const std::unique_ptr<Window>& window);
     void OnUpdate(float aspectRatio);
 
@@ -37,8 +36,11 @@ public:
     virtual const glm::mat4& GetViewMatrix() const override;
     virtual const glm::mat4& GetProjectionMatrix() const override;
 
-    PerspectiveCamera& SetPosition(const glm::vec3& position);
     const glm::vec3& GetPosition() const;
+
+public:
+    PerspectiveCamera& SetPosition(const glm::vec3& position);
+    PerspectiveCamera& SetLookDirection(const glm::vec3& direction);
 
 private:
     void UpdateData();
@@ -46,6 +48,9 @@ private:
 private:
     glm::mat4 m_ViewMatrix{};
     glm::mat4 m_ProjectionMatrix{};
+
+    float m_NearPlane{};
+    float m_FarPlane{};
 
     glm::vec3 m_Position{};
     glm::vec3 m_Front{};
