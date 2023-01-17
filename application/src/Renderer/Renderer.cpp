@@ -106,8 +106,8 @@ bool Renderer2D::Initialize()
     }) };
 
     s_RendererData->PlaneVArray = Create<VertexArray>({
-        .VertexBuffer = vertexBuffer,
-        .IndexBuffer  = indexBuffer,
+        .VertexBufferPtr = vertexBuffer,
+        .IndexBufferPtr  = indexBuffer,
     });
 
     s_RendererData->FlatTexture = Create<Texture2D>({});

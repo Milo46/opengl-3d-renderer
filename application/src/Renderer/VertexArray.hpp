@@ -7,8 +7,8 @@ RENDERER_CODE_BEGIN
 
 struct VertexArrayProps
 {
-    std::shared_ptr<VertexBuffer> VertexBuffer;
-    std::shared_ptr<IndexBuffer> IndexBuffer;
+    std::shared_ptr<VertexBuffer> VertexBufferPtr;
+    std::shared_ptr<IndexBuffer> IndexBufferPtr;
 };
 
 class VertexArray

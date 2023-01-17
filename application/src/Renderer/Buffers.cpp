@@ -2,7 +2,7 @@
 
 #include <array>
 #include <spdlog/spdlog.h>
-#include <GLAD/glad.h>
+#include <glad/glad.h>
 
 RENDERER_CODE_BEGIN
 

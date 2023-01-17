@@ -1,6 +1,6 @@
 #include "GraphicsContext.hpp"
 
-#include <GLAD/glad.h>
+#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
 #include <spdlog/spdlog.h>
@@ -16,14 +16,14 @@ bool GraphicsContext::Initialize()
 {
     if (!m_WindowHandle)
     {
-        // spdlog::critical("Window handle cannot be nullptr!");
+        spdlog::critical("Window handle cannot be nullptr!");
         return false;
     }
 
     glfwMakeContextCurrent(m_WindowHandle);
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
-        // spdlog::critical("[GLAD] Failed to initialize!");
+        spdlog::critical("[GLAD] Failed to initialize!");
         return false;
     }
 

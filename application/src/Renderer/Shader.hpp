@@ -4,13 +4,13 @@
 #include "Bindable.hpp"
 
 #include <unordered_map>
-#include <xtr1common>
 #include <filesystem>
 #include <memory>
+#include <vector>
 #include <string>
 #include <array>
 
-#include <GLAD/glad.h>
+#include <glad/glad.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -85,7 +85,7 @@ struct ShaderData
 
 struct ShaderDataExtractor
 {
-    std::vector<ShaderData> ShaderData{};
+    std::vector<ShaderData> ShaderDataVector{};
     std::shared_ptr<const Shader> Ref;
 
     ShaderDataExtractor() = default;

@@ -1,11 +1,10 @@
 #include "Application.hpp"
 
-#include <filesystem>
 #include <spdlog/spdlog.h>
-
-#include <GLAD/glad.h>
+#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+#include "Filesystem/Filesystem.hpp"
 #include "Utility/Checker.hpp"
 
 #include "Extensions/Renderer/BuffersVectorProps.hpp"
@@ -33,15 +32,12 @@ Application::~Application()
 
 bool Application::Initialize() noexcept
 {
-    const auto rootFilepath{ std::filesystem::path{ __FILE__ }.append("../../../") };
-    std::filesystem::current_path(rootFilepath);
-    spdlog::info("Root filepath: {}", rootFilepath.generic_string());
-
     if (!Checker::PerformSequence(spdlog::level::critical, {
-        { [this]() { return Logger::Initialize();                 }, "Failed to initialize the logger!",    },
-        { [this]() { return m_Window->Initialize();               }, "Failed to initialize the window!",    },
-        { [this]() { return Renderer::Renderer2D::Initialize();   }, "Failed to initialize the renderer!",  },
-        { [this]() { return m_ImGuiContext->Initialize(m_Window); }, "Failed to initialize ImGui context!", },
+        { [this]() { return Filesystem::Initialize();             }, "Failed to initialize the filesystem!", },
+        { [this]() { return Logger::Initialize();                 }, "Failed to initialize the logger!",     },
+        { [this]() { return m_Window->Initialize();               }, "Failed to initialize the window!",     },
+        { [this]() { return Renderer::Renderer2D::Initialize();   }, "Failed to initialize the renderer!",   },
+        { [this]() { return m_ImGuiContext->Initialize(m_Window); }, "Failed to initialize ImGui context!",  },
     })) return false;
 
     m_ShaderData.Extract(Renderer::Renderer2D::GetFlatShader());
@@ -259,7 +255,7 @@ void Application::PanelShader(ImGuiIO& io, const Timestamp& timestamp)
 {
     ImGui::Begin("Shader Preview");
 
-    const auto& shaderInfo{ m_ShaderData.ShaderData };
+    const auto& shaderInfo{ m_ShaderData.ShaderDataVector };
     static std::size_t contentIndex{ 0u };
     static bool openPopup{ false };
 

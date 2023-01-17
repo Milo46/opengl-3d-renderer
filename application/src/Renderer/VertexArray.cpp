@@ -1,6 +1,6 @@
 #include "VertexArray.hpp"
 
-#include <GLAD/glad.h>
+#include <glad/glad.h>
 
 #include <spdlog/spdlog.h>
 
@@ -36,8 +36,8 @@ VertexArray::VertexArray(const VertexArrayProps& props)
 {
     glCreateVertexArrays(1, &m_RendererID);
 
-    VertexArray::SetVertexBuffer(props.VertexBuffer);
-    VertexArray::SetIndexBuffer(props.IndexBuffer);
+    VertexArray::SetVertexBuffer(props.VertexBufferPtr);
+    VertexArray::SetIndexBuffer(props.IndexBufferPtr);
 }
 
 VertexArray::~VertexArray()

@@ -2,7 +2,7 @@
 
 #include "ImGuiBuild.hpp"
 
-#include <GLAD/glad.h>
+#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
 bool ImGuiBuildContext::Initialize(const std::unique_ptr<Window>& window) noexcept

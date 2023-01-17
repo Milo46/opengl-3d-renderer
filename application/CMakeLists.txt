@@ -13,6 +13,9 @@ add_executable(${PROJECT_NAME}
     src/Logger/Logger.hpp
     src/Logger/Logger.cpp
 
+    src/Filesystem/Filesystem.hpp
+    src/Filesystem/Filesystem.cpp
+
     src/ImGui/ImGuiBuild.hpp
     src/ImGui/ImGuiContext.hpp
     src/ImGui/ImGuiContext.cpp

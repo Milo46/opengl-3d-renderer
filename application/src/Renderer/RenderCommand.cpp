@@ -1,6 +1,6 @@
 #include "RenderCommand.hpp"
 
-#include <GLAD/glad.h>
+#include <glad/glad.h>
 
 namespace Renderer::RenderCommand
 {

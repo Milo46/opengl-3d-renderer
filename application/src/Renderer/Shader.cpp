@@ -285,15 +285,15 @@ ShaderDataExtractor::ShaderDataExtractor(const std::shared_ptr<Shader>& shader) 
 void ShaderDataExtractor::Extract(const std::shared_ptr<Shader>& shader) noexcept
 {
     Ref = shader;
-    ShaderData.clear();
+    ShaderDataVector.clear();
     for (std::size_t i{ 0u }; i < shader->m_Handles.size() && shader->m_Handles[i] != c_EmptyValue<RendererID>; ++i)
     {
         const auto shaderType{ EnumHelpers::ToEnumClass<ShaderType>(i) };
         const auto name{ EnumHelpers::MapEnumClass<ShaderType, const char*>(shaderType, Internal::c_ShaderStringName, "") };
 
-        ShaderData.push_back({
+        ShaderDataVector.push_back({
             .ID     = shader->m_Handles[i],
-            .Type = name,
+            .Type   = name,
             .Source = shader->m_Sources[i],
         });
     }
