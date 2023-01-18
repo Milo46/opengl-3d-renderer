@@ -45,7 +45,11 @@ bool Application::Initialize() noexcept
     glGenFramebuffers(1, &m_Framebuffer);
     glBindFramebuffer(GL_FRAMEBUFFER, m_Framebuffer);
 
-    m_TextureColorbuffer = Renderer::Create<Renderer::Texture2D>({ .Size = { 800u, 600u, }, });
+    m_TextureColorbuffer = Renderer::Create<Renderer::Texture2D>({
+        .Size = { 800u, 600u, },
+    });
+    if (!m_TextureColorbuffer->Initialize()) return false;
+
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_TextureColorbuffer->GetHandle(), 0);
 
     glGenRenderbuffers(1, &m_Renderbuffer);
@@ -217,16 +221,6 @@ void Application::PanelViewport(ImGuiIO& io, const Timestamp& timestamp)
         glPolygonMode(GL_FRONT_AND_BACK, m_WireframeMode ? GL_LINE : GL_FILL);
         m_WireframeMode = !m_WireframeMode;
     }
-
-    // { // yellow-rectangle-begin
-    //     auto vMin{ ImGui::GetWindowContentRegionMin() };
-    //     auto vMax{ ImGui::GetWindowContentRegionMax() };
-    //     vMin.x += ImGui::GetWindowPos().x;
-    //     vMin.y += ImGui::GetWindowPos().y;
-    //     vMax.x += ImGui::GetWindowPos().x;
-    //     vMax.y += ImGui::GetWindowPos().y;
-    //     ImGui::GetForegroundDrawList()->AddRect(vMin, vMax, IM_COL32(255, 255, 0, 255));
-    // } // yellow-rectangle-end
 
     // update-viewport-size-and-position-begin
     {

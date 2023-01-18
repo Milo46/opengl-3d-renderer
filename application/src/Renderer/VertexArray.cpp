@@ -26,53 +26,55 @@ namespace Internal
         case LayoutDataType::Mat3:
         case LayoutDataType::Mat4: return GL_FLOAT;
 
-        default:
-            return static_cast<RendererEnum>(-1);
+        default: return c_InvalidValue<RendererEnum>;
         }
     }
 }
 
 VertexArray::VertexArray(const VertexArrayProps& props)
-{
-    glCreateVertexArrays(1, &m_RendererID);
-
-    VertexArray::SetVertexBuffer(props.VertexBufferPtr);
-    VertexArray::SetIndexBuffer(props.IndexBufferPtr);
-}
+    : m_VertexBuffer{ props.VertexBufferPtr }, m_IndexBuffer{ props.IndexBufferPtr } {}
 
 VertexArray::~VertexArray()
 {
-    glDeleteVertexArrays(1, &m_RendererID);
+    if (m_RendererID != c_EmptyValue<RendererID>)
+        glDeleteVertexArrays(1, &m_RendererID);
 }
 
-void VertexArray::SetVertexBuffer(std::shared_ptr<VertexBuffer> vertexBuffer)
+bool VertexArray::Initialize() noexcept
 {
-    if (!vertexBuffer.get() || vertexBuffer->GetLayout().GetElements().empty()) return;
+    if (m_RendererID != c_EmptyValue<RendererID>)
+        glDeleteVertexArrays(1, &m_RendererID);
 
-    VertexArray::Bind();
-    vertexBuffer->Bind();
+    glCreateVertexArrays(1, &m_RendererID);
+    glBindVertexArray(m_RendererID);
 
-    std::size_t attribIndex{ 0u };
-    const auto& layout{ vertexBuffer->GetLayout() };
-    for (const auto& element : layout.GetElements())
+    if (!m_VertexBuffer.get() || m_VertexBuffer->GetLayout().GetElements().empty()) return false;
+
+    m_VertexBuffer->Bind();
+
+    const auto& layoutElements{ m_VertexBuffer->GetLayout().GetElements() };
+    const auto& stride{ m_VertexBuffer->GetLayout().GetStride() };
+
+    for (std::size_t i = 0u; i < layoutElements.size(); ++i)
     {
-        glEnableVertexAttribArray(attribIndex);
-        glVertexAttribPointer(attribIndex++, element.GetComponentCount(), Internal::GetGLLayoutDataType(element.Type),
-            element.Normalized ? GL_TRUE : GL_FALSE, layout.GetStride(),
-            reinterpret_cast<const void*>(static_cast<uintptr_t>(element.Offset)));
+        const auto& element{ layoutElements[i] };
+
+        glEnableVertexAttribArray({ static_cast<GLuint>(i) });
+        glVertexAttribPointer(
+            { static_cast<GLuint>(i) },
+            { static_cast<GLint>(element.GetComponentCount()) },
+            { Internal::GetGLLayoutDataType(element.Type) },
+            { static_cast<GLboolean>(element.Normalized ? GL_TRUE : GL_FALSE) },
+            { static_cast<GLsizei>(stride) },
+            { reinterpret_cast<const void*>(element.Offset) }
+        );
     }
 
-    m_VertexBuffer = vertexBuffer;
-}
+    if (!m_IndexBuffer.get() || !m_IndexBuffer->GetCount()) return false;
 
-void VertexArray::SetIndexBuffer(std::shared_ptr<IndexBuffer> indexBuffer)
-{
-    if (!indexBuffer.get() || !indexBuffer->GetCount()) return;
+    m_IndexBuffer->Bind();
 
-    VertexArray::Bind();
-    indexBuffer->Bind();
-
-    m_IndexBuffer = indexBuffer;
+    return true;
 }
 
 void VertexArray::Bind() const

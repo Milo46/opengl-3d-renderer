@@ -53,11 +53,8 @@ public:
     BufferLayout() = default;
     BufferLayout(const std::initializer_list<BufferElement>& elements);
 
-    inline const auto  GetStride() const noexcept   { return m_Stride; }
+    inline const auto& GetStride() const noexcept { return m_Stride; }
     inline const auto& GetElements() const noexcept { return m_Elements; }
-
-private:
-    void CalculateData() noexcept;
 
 private:
     std::vector<BufferElement> m_Elements{};
@@ -67,9 +64,9 @@ private:
 struct VertexBufferProps
 {
     const void* Data{ nullptr };
-    const std::size_t Size{ 0u };
-    const BufferUsage Usage{ BufferUsage::StaticDraw };
-    const BufferLayout Layout{};
+    std::size_t Size{ 0u };
+    BufferUsage Usage{ BufferUsage::StaticDraw };
+    BufferLayout Layout{};
 };
 
 class VertexBuffer
@@ -87,18 +84,22 @@ public:
     inline const auto& GetLayout() const noexcept { return m_Layout; }
 
 public:
+    bool Initialize() noexcept;
+
+public:
     virtual void Bind() const override;
     virtual void Unbind() const override;
 
 private:
+    VertexBufferProps m_Props{};
     BufferLayout m_Layout{};
 };
 
 struct IndexBufferProps
 {
     const void* Data{ nullptr };
-    const std::size_t Count{ 0u };
-    const BufferUsage Usage{ BufferUsage::StaticDraw };
+    std::size_t Count{ 0u };
+    BufferUsage Usage{ BufferUsage::StaticDraw };
 };
 
 class IndexBuffer
@@ -116,10 +117,14 @@ public:
     inline const auto GetCount() const noexcept { return m_Count; }
 
 public:
+    bool Initialize() noexcept;
+
+public:
     virtual void Bind() const override;
     virtual void Unbind() const override;
 
 private:
+    IndexBufferProps m_Props{};
     std::size_t m_Count{ 0u };
 };
 

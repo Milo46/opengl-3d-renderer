@@ -27,7 +27,6 @@ namespace Renderer
     }
 
     template<typename _Ty> constexpr inline auto c_EmptyValue{ GetArithmetic<_Ty>(0) };
-    // template<typename _Ty> constexpr inline auto c_InvalidValue{ GetArithmetic<_Ty>(-1) };
     template<typename _Ty> constexpr inline auto c_InvalidValue{ static_cast<_Ty>(-1) };
 
     class RendererElement
@@ -37,10 +36,10 @@ namespace Renderer
         const RendererID GetHandle() const noexcept;
 
     protected:
-        explicit RendererElement(const RendererID id = c_EmptyValue<RendererID>);
+        explicit RendererElement() = default;
 
     protected:
-        RendererID m_RendererID;
+        RendererID m_RendererID{ c_EmptyValue<RendererID> };
     };
 
     template<typename _DefaultProps>

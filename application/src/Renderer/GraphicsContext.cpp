@@ -9,6 +9,14 @@
 
 RENDERER_CODE_BEGIN
 
+/**
+ * Source: https://www.khronos.org/opengl/wiki/OpenGL_Error
+ */
+void GLAPIENTRY GLADErrorCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
+{
+    fprintf(stderr, "GL CALLBACK %s type = 0x%x, severity = 0x%x, message = %s\n", (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""), type, severity, message);
+}
+
 GraphicsContext::GraphicsContext(GLFWwindow* window)
     : m_WindowHandle{ window } {}
 
@@ -26,6 +34,9 @@ bool GraphicsContext::Initialize()
         spdlog::critical("[GLAD] Failed to initialize!");
         return false;
     }
+
+    // glEnable(GL_DEBUG_OUTPUT);
+    // glDebugMessageCallback(GLADErrorCallback, nullptr);
 
     glEnable(GL_DEPTH_TEST);
     glfwSwapInterval(1);

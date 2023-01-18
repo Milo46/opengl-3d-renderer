@@ -35,6 +35,11 @@ struct RendererVertex
 {
     glm::vec3 Position;
     glm::vec2 Texcoord;
+
+    inline static const BufferLayout c_Layout{
+        { LayoutDataType::Float3, "a_Position", },
+        { LayoutDataType::Float2, "a_Texcoord", },
+    };
 };
 
 struct RendererData
@@ -80,38 +85,35 @@ bool Renderer2D::Initialize()
         { { -0.5f,  0.5f, defaultZCoordinate, }, { 0.0f, 1.0f, }, }, // left  top
     } };
 
-    const std::array<unsigned int, 6u> rectangleIndices = { {
-        0u, 1u, 3u, // first  triangle
-        1u, 2u, 3u, // second triangle
-    } };
-
     // Represent indices as an array of triangles, not individual vertices.
-    // const std::array<glm::uvec3, 2u> rectangleIndices = { {
-    //     { 0u, 1u, 3u, }, // first  triangle
-    //     { 1u, 2u, 3u, }, // second triangle
-    // } };
+    const std::array<glm::uvec3, 2u> rectangleIndices = { {
+        { 0u, 1u, 3u, }, // first  triangle
+        { 1u, 2u, 3u, }, // second triangle
+    } };
 
     auto vertexBuffer{ Create<VertexBuffer>({
         .Data   = rectangleVertices.data(),
         .Size   = rectangleVertices.size() * sizeof(decltype(rectangleVertices)::value_type),
-        .Layout = {
-            { LayoutDataType::Float3, "a_Position", },
-            { LayoutDataType::Float2, "a_Texcoord", },
-        },
+        .Layout = decltype(rectangleVertices)::value_type::c_Layout,
     }) };
+    if (!vertexBuffer->Initialize()) return false;
 
     auto indexBuffer{ Create<IndexBuffer>({
         .Data  = rectangleIndices.data(),
-        .Count = rectangleIndices.size(),
+        .Count = rectangleIndices.size() * (sizeof(decltype(rectangleIndices)::value_type) / sizeof(unsigned int)),
     }) };
+    if (!indexBuffer->Initialize()) return false;
 
     s_RendererData->PlaneVArray = Create<VertexArray>({
         .VertexBufferPtr = vertexBuffer,
         .IndexBufferPtr  = indexBuffer,
     });
+    if (!s_RendererData->PlaneVArray->Initialize()) return false;
 
-    s_RendererData->FlatTexture = Create<Texture2D>({});
-    if (!s_RendererData->FlatTexture->LoadFilepath("assets/textures/container.jpg")) {} //return false;
+    s_RendererData->FlatTexture = Create<Texture2D>({
+        .Filepath  = "assets/textures/container.jpg",
+    });
+    if (!s_RendererData->FlatTexture->Initialize()) return false;
 
     s_RendererData->FlatShader = Create<Shader>({
         .Sources = {

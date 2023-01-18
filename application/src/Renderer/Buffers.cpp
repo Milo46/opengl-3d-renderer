@@ -68,30 +68,34 @@ std::size_t BufferElement::GetComponentCount() const noexcept
 }
 
 BufferLayout::BufferLayout(const std::initializer_list<BufferElement>& elements)
-    : m_Elements{ elements } { BufferLayout::CalculateData(); }
-
-void BufferLayout::CalculateData() noexcept
+    : m_Elements{ elements }
 {
-    std::size_t offset{ 0u };
-    for (auto& element : m_Elements)
+    for (auto& bufferElement : m_Elements)
     {
-        element.Offset = offset;
-        offset += element.Size;
+        bufferElement.Offset = m_Stride;
+        m_Stride += bufferElement.Size;
     }
-    m_Stride = offset;
 }
 
 VertexBuffer::VertexBuffer(const VertexBufferProps& props)
-    : m_Layout{ props.Layout }
-{
-    glGenBuffers(1, &m_RendererID);
-    glBindBuffer(GL_ARRAY_BUFFER, { m_RendererID });
-    glBufferData(GL_ARRAY_BUFFER, { static_cast<RendererSizeiptr>(props.Size) }, { props.Data }, { static_cast<RendererEnum>(Internal::GetGLBufferUsage(props.Usage)) });
-}
+    : m_Layout{ props.Layout }, m_Props{ props } {}
 
 VertexBuffer::~VertexBuffer()
 {
-    glDeleteBuffers(1, &m_RendererID);
+    if (m_RendererID != c_EmptyValue<RendererID>)
+        glDeleteBuffers(1, &m_RendererID);
+}
+
+bool VertexBuffer::Initialize() noexcept
+{
+    if (m_RendererID != c_EmptyValue<RendererID>)
+        glDeleteBuffers(1, &m_RendererID);
+    
+    glGenBuffers(1, &m_RendererID);
+    glBindBuffer(GL_ARRAY_BUFFER, { m_RendererID });
+    glBufferData(GL_ARRAY_BUFFER, { static_cast<GLsizeiptr>(m_Props.Size) }, { m_Props.Data }, { Internal::GetGLBufferUsage(m_Props.Usage) });
+
+    return true;
 }
 
 void VertexBuffer::Bind() const
@@ -101,25 +105,33 @@ void VertexBuffer::Bind() const
 
 void VertexBuffer::Unbind() const
 {
-    glBindBuffer(GL_ARRAY_BUFFER, 0u);
+    glBindBuffer(GL_ARRAY_BUFFER, c_EmptyValue<RendererID>);
 }
 
 IndexBuffer::IndexBuffer(const IndexBufferProps& props)
-    : m_Count{ props.Count }
+    : m_Count{ props.Count }, m_Props{ props } {}
+
+IndexBuffer::~IndexBuffer()
 {
+    if (m_RendererID != c_EmptyValue<RendererID>)
+        glDeleteBuffers(1, &m_RendererID);
+}
+
+bool IndexBuffer::Initialize() noexcept
+{
+    if (m_RendererID != c_EmptyValue<RendererID>)
+        glDeleteBuffers(1, &m_RendererID);
+
     glGenBuffers(1, &m_RendererID);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, { m_RendererID });
     glBufferData(
         GL_ELEMENT_ARRAY_BUFFER,
-        { static_cast<RendererSizeiptr>(props.Count * sizeof(unsigned int)) },
-        { props.Data },
-        { static_cast<RendererEnum>(Internal::GetGLBufferUsage(props.Usage)) }
+        { static_cast<GLsizeiptr>(m_Props.Count * sizeof(uint32_t)) },
+        { m_Props.Data },
+        { Internal::GetGLBufferUsage(m_Props.Usage) }
     );
-}
 
-IndexBuffer::~IndexBuffer()
-{
-    glDeleteBuffers(1, &m_RendererID);
+    return true;
 }
 
 void IndexBuffer::Bind() const
@@ -129,7 +141,7 @@ void IndexBuffer::Bind() const
 
 void IndexBuffer::Unbind() const
 {
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0u);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, c_EmptyValue<RendererID>);
 }
 
 RENDERER_CODE_END

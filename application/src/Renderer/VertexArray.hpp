@@ -23,11 +23,11 @@ public:
     explicit VertexArray(const VertexArrayProps& props);
     ~VertexArray();
 
-    void SetVertexBuffer(std::shared_ptr<VertexBuffer> vertexBuffer);
-    void SetIndexBuffer(std::shared_ptr<IndexBuffer> indexBuffer);
-
     inline const auto& GetVertexBuffer() const noexcept { return m_VertexBuffer; }
     inline const auto& GetIndexBuffer() const noexcept { return m_IndexBuffer; }
+
+public:
+    bool Initialize() noexcept;
 
 public:
     virtual void Bind() const override;
