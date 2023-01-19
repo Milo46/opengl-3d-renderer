@@ -46,6 +46,7 @@ add_executable(${PROJECT_NAME}
 
     src/Application/Application.hpp
     src/Application/Application.cpp
+    src/Application/Framebuffer.cpp
 
     src/Core/EntryPoint.hpp
     src/Core/EntryPoint.cpp

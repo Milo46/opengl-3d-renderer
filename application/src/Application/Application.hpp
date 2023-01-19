@@ -1,7 +1,5 @@
 #pragma once
 
-#include <stack>
-
 #include "Renderer/Shader.hpp"
 #include "Renderer/Texture2D.hpp"
 #include "Renderer/VertexArray.hpp"
@@ -12,19 +10,7 @@
 
 #include "ImGui/ImGuiContext.hpp"
 
-// class State
-// {
-//     friend class Application;
-
-// protected:
-//     explicit State(const std::string_view name);
-
-//     virtual void OnInitialize()  = 0;
-//     virtual void OnDestruction() = 0;
-
-//     virtual void OnUpdate() = 0;
-//     virtual void OnRender(const float& deltaTime) = 0;
-// };
+#include "Framebuffer.hpp"
 
 struct Timestamp // or Timepoint? Help.
 {
@@ -67,15 +53,10 @@ private:
     glm::vec2 m_ViewportPosition{};
     glm::vec2 m_ViewportSize{};
 
-    // std::unique_ptr<Renderer> m_Renderer;
-    // std::stack<State*> m_States{};
-
     std::size_t m_TriangleCount{ 0u };
     bool m_WireframeMode{ true };
 
-    Renderer::RendererID m_Framebuffer{ 0u };
-    Renderer::RendererID m_Renderbuffer{ 0u };
-    std::shared_ptr<Renderer::Texture2D> m_TextureColorbuffer{ 0u };
+    std::shared_ptr<Renderer::Framebuffer> m_Framebuffer{};
 
     Renderer::ShaderDataExtractor m_ShaderData{};
 };

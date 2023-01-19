@@ -42,26 +42,8 @@ bool Application::Initialize() noexcept
 
     m_ShaderData.Extract(Renderer::Renderer2D::GetFlatShader());
 
-    glGenFramebuffers(1, &m_Framebuffer);
-    glBindFramebuffer(GL_FRAMEBUFFER, m_Framebuffer);
-
-    m_TextureColorbuffer = Renderer::Create<Renderer::Texture2D>({
-        .Size = { 800u, 600u, },
-    });
-    if (!m_TextureColorbuffer->Initialize()) return false;
-
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_TextureColorbuffer->GetHandle(), 0);
-
-    glGenRenderbuffers(1, &m_Renderbuffer);
-    glBindRenderbuffer(GL_RENDERBUFFER, m_Renderbuffer);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, m_TextureColorbuffer->GetWidth(), m_TextureColorbuffer->GetHeight());
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_Renderbuffer);
-
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-    {
-        spdlog::critical("Framebuffer is not complete!");
-        return false;
-    }
+    m_Framebuffer = Renderer::Create<Renderer::Framebuffer>({ .Size = { 800u, 600u, }, });
+    if (!m_Framebuffer->Initialize()) return false;
 
     return true;
 }
@@ -104,20 +86,17 @@ void Application::Run() noexcept
         m_Window->OnUpdate();
         m_Camera.OnUpdate(m_UpdateAspectRatio);
 
-        glBindFramebuffer(GL_FRAMEBUFFER, m_Framebuffer);
+        m_Framebuffer->Bind();
         glEnable(GL_DEPTH_TEST);
-
         Application::OnUpdate(m_Timestamp);
         Application::OnRenderViewport();
 
         m_TriangleCount = Renderer::Renderer2D::GetTriangleCount();
 
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        m_Framebuffer->Unbind();
         glDisable(GL_DEPTH_TEST);
-
         Renderer::RenderCommand::SetClearColor(glm::vec4(1.0f));
         Renderer::RenderCommand::Clear();
-
         m_ImGuiContext->PreRender();
         Application::OnRenderImGui(m_ImGuiContext->GetIO(), m_Timestamp);
         m_ImGuiContext->PostRender();
@@ -205,7 +184,8 @@ void Application::PanelViewport(ImGuiIO& io, const Timestamp& timestamp)
     // }
 
     ImVec2 wsize{ ImGui::GetContentRegionAvail() };
-    ImGui::Image(reinterpret_cast<ImTextureID>(m_TextureColorbuffer->GetHandle()), wsize, ImVec2(0, 1), ImVec2(1, 0));
+    // ImGui::Image(reinterpret_cast<ImTextureID>(m_TextureColorbuffer->GetHandle()), wsize, ImVec2(0, 1), ImVec2(1, 0));
+    ImGui::Image(reinterpret_cast<ImTextureID>(m_Framebuffer->GetColorbuffer()->GetHandle()), wsize, ImVec2(0, 1), ImVec2(1, 0));
     ImGui::SetCursorPos(ImVec2(5, 25)); ImGui::Text("Viewport Size: (%f, %f)", wsize.x, wsize.y);
     ImGui::SetCursorPos(ImVec2(5, 45)); ImGui::Text("FPS ImGui: %f", 1.0f / io.DeltaTime);
     ImGui::SetCursorPos(ImVec2(5, 65)); ImGui::Text("FPS Viewport: %f", 1.0f / timestamp.DeltaTime);
