@@ -1,7 +1,6 @@
 #pragma once
 
 #include "RendererCore.hpp"
-#include "Bindable.hpp"
 
 #include <unordered_map>
 #include <filesystem>
@@ -29,13 +28,10 @@ enum class ShaderType
 
 struct ShaderProps
 {
-    const std::unordered_map<ShaderType, FileManager> Sources{};
+    std::unordered_map<ShaderType, FileManager> Sources{};
 };
 
-class Shader
-    : public NonCopyable<Shader>,
-      public RendererElement,
-      public Bindable
+class Shader : public RendererResource
 {
 public:
     DECLARE_CREATABLE(Shader);
@@ -61,14 +57,21 @@ public:
     inline void SetUniform(const std::string_view, const _Ty&) noexcept;
 
 public:
+    virtual bool OnInitialize() noexcept override;
+
+public:
     virtual void Bind() const override;
     virtual void Unbind() const override;
+
+public:
+    inline virtual RendererID GetResourceHandle() const override { return m_RendererID; }
 
 private:
     bool InternalLoadSource(const ShaderType type, const FileManager& source) noexcept;
     bool InternalCompileShader(const std::size_t index);
 
 private:
+    RendererID m_RendererID{ c_EmptyValue<RendererID> };
     std::array<RendererID, Shader::c_ShaderCount> m_Handles{ 0u };
     std::array<FileManager, Shader::c_ShaderCount> m_Sources{};
     std::array<bool, Shader::c_ShaderCount> m_Compiled{ false };

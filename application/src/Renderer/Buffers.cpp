@@ -78,7 +78,7 @@ BufferLayout::BufferLayout(const std::initializer_list<BufferElement>& elements)
 }
 
 VertexBuffer::VertexBuffer(const VertexBufferProps& props)
-    : m_Layout{ props.Layout }, m_Props{ props } {}
+    : m_Props{ props } {}
 
 VertexBuffer::~VertexBuffer()
 {
@@ -86,7 +86,7 @@ VertexBuffer::~VertexBuffer()
         glDeleteBuffers(1, &m_RendererID);
 }
 
-bool VertexBuffer::Initialize() noexcept
+bool VertexBuffer::OnInitialize() noexcept
 {
     if (m_RendererID != c_EmptyValue<RendererID>)
         glDeleteBuffers(1, &m_RendererID);
@@ -109,7 +109,7 @@ void VertexBuffer::Unbind() const
 }
 
 IndexBuffer::IndexBuffer(const IndexBufferProps& props)
-    : m_Count{ props.Count }, m_Props{ props } {}
+    : m_Props{ props } {}
 
 IndexBuffer::~IndexBuffer()
 {
@@ -117,7 +117,7 @@ IndexBuffer::~IndexBuffer()
         glDeleteBuffers(1, &m_RendererID);
 }
 
-bool IndexBuffer::Initialize() noexcept
+bool IndexBuffer::OnInitialize() noexcept
 {
     if (m_RendererID != c_EmptyValue<RendererID>)
         glDeleteBuffers(1, &m_RendererID);

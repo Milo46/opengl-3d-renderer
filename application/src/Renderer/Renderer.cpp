@@ -52,7 +52,8 @@ struct RendererData
     std::size_t TrianglesCountTemp{ 0u };
 };
 
-static RendererData* s_RendererData{ nullptr };
+// static RendererData* s_RendererData{ nullptr };
+static std::unique_ptr<RendererData> s_RendererData{ nullptr };
 
 const std::shared_ptr<Shader>& Renderer2D::GetFlatShader() noexcept
 {
@@ -68,11 +69,15 @@ bool Renderer2D::Initialize()
 {
     if (s_RendererData)
     {
-        spdlog::critical("[Renderer2D] Failed to initialize Renderer2D!");
-        return false;
+        // spdlog::critical("[Renderer2D] Failed to initialize Renderer2D!");
+        // return false;
+
+        spdlog::info("[Renderer2D] Renderer is already initialized!");
+        return true;
     }
 
-    s_RendererData = new RendererData{};
+    // s_RendererData = new RendererData{};
+    s_RendererData = std::make_unique<RendererData>();
 
     // It should probably stay how it is, maybe the time will come...
     const float defaultZCoordinate{ 0.0f };
@@ -96,24 +101,24 @@ bool Renderer2D::Initialize()
         .Size   = rectangleVertices.size() * sizeof(decltype(rectangleVertices)::value_type),
         .Layout = decltype(rectangleVertices)::value_type::c_Layout,
     }) };
-    if (!vertexBuffer->Initialize()) return false;
+    if (!vertexBuffer->OnInitialize()) return false;
 
     auto indexBuffer{ Create<IndexBuffer>({
         .Data  = rectangleIndices.data(),
         .Count = rectangleIndices.size() * (sizeof(decltype(rectangleIndices)::value_type) / sizeof(unsigned int)),
     }) };
-    if (!indexBuffer->Initialize()) return false;
+    if (!indexBuffer->OnInitialize()) return false;
 
     s_RendererData->PlaneVArray = Create<VertexArray>({
         .VertexBufferPtr = vertexBuffer,
         .IndexBufferPtr  = indexBuffer,
     });
-    if (!s_RendererData->PlaneVArray->Initialize()) return false;
+    if (!s_RendererData->PlaneVArray->OnInitialize()) return false;
 
     s_RendererData->FlatTexture = Create<Texture2D>({
         .Filepath  = "assets/textures/container.jpg",
     });
-    if (!s_RendererData->FlatTexture->Initialize()) return false;
+    if (!s_RendererData->FlatTexture->OnInitialize()) return false;
 
     s_RendererData->FlatShader = Create<Shader>({
         .Sources = {
@@ -129,7 +134,8 @@ bool Renderer2D::Initialize()
 
 void Renderer2D::Shutdown()
 {
-    delete s_RendererData;
+    // delete s_RendererData;
+    s_RendererData.~unique_ptr();
 }
 
 void Renderer2D::BeginScene(const Camera* camera)
@@ -150,14 +156,25 @@ void Renderer2D::DrawPlane(const glm::vec3& size, const glm::vec3& position, con
 {
     const auto model{ ComposeModelMatrix(position, size) };
 
-    glActiveTexture(GL_TEXTURE0);
-    s_RendererData->FlatTexture->Bind();
+    s_RendererData->FlatShader->SetUniform("u_ModelMatrix", model);
+    s_RendererData->FlatShader->SetUniform("u_Color", color);
+
+    s_RendererData->PlaneVArray->Bind();
+    RenderCommand::DrawIndexed(s_RendererData->PlaneVArray, s_RendererData->FlatTexture);
+
+    s_RendererData->TrianglesCountTemp +=
+        s_RendererData->PlaneVArray->GetIndexBuffer()->GetCount() / 3u;
+}
+
+void Renderer2D::DrawPlane(const glm::vec3& size, const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& color)
+{
+    const auto model{ ComposeModelMatrix(position, rotation, size) };
 
     s_RendererData->FlatShader->SetUniform("u_ModelMatrix", model);
     s_RendererData->FlatShader->SetUniform("u_Color", color);
 
     s_RendererData->PlaneVArray->Bind();
-    RenderCommand::DrawIndexed(s_RendererData->PlaneVArray);
+    RenderCommand::DrawIndexed(s_RendererData->PlaneVArray, s_RendererData->FlatTexture);
 
     s_RendererData->TrianglesCountTemp +=
         s_RendererData->PlaneVArray->GetIndexBuffer()->GetCount() / 3u;

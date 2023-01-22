@@ -32,142 +32,6 @@ namespace Internal
     );
 }
 
-namespace OpenGLCommand
-{
-    inline bool IsShader(RendererID id) noexcept  { return glIsShader(id);  }
-    inline bool IsProgram(RendererID id) noexcept { return glIsProgram(id); }
-
-    inline RendererID CreateShader(ShaderType type, const std::string& source) noexcept
-    {
-        RendererID id{ glCreateShader(EnumHelpers::MapEnumClass(type, Internal::c_ShaderGLType)) };
-        ON_DEBUG([&]() {
-            spdlog::debug("[OpenGL] Creating a shader (ID: {}, Name: {})...",
-                id, EnumHelpers::MapEnumClass(type, Internal::c_ShaderStringName));
-        });
-
-        const auto csource{ source.c_str() };
-        glShaderSource(id, 1, &csource, nullptr);
-        ON_DEBUG([&]() {
-            spdlog::debug("[OpenGL] Setting shader\'s (ID: {}, Name: {}) source...",
-                id, EnumHelpers::MapEnumClass(type, Internal::c_ShaderStringName));
-        });
-
-        return id;
-    }
-
-    inline RendererID CreateProgram() noexcept
-    {
-        RendererID id{ glCreateProgram() };
-        ON_DEBUG([&]() {
-            spdlog::debug("[OpenGL] Creating a program (ID: {})...", id);
-        });
-
-        return id;
-    }
-
-    inline void DeleteProgram(RendererID& id) noexcept
-    {
-        if (id == c_EmptyValue<RendererID>) return;
-
-        ON_DEBUG([&]() {
-            spdlog::debug("[OpenGL] Deleting a program (ID: {})...", id);
-            spdlog::debug("[OpenGL] - Checking if provided ID is a program...");
-            if (!IsProgram(id))
-            {
-                spdlog::critical("[OpenGL](DeleteProgram) Provided ID (= {}) is not a program!", id);
-                std::abort();
-            }
-        });
-
-        return glDeleteProgram(id);
-    }
-
-    inline void UseProgram(RendererID id) noexcept
-    {
-        return glUseProgram(id);
-    }
-
-    inline std::optional<std::string> CompileShader(RendererID id) noexcept
-    {
-        ON_DEBUG([&]() {
-            spdlog::debug("[OpenGL] Compiling a shader (ID: {})...", id);
-            spdlog::debug("[OpenGL] - Checking if provided ID is a shader...");
-            if (!IsShader(id))
-            {
-                spdlog::critical("[OpenGL](CompileShader) Provided ID (= {}) is not a shader", id);
-            }
-        });
-
-        glCompileShader(id);
-
-        GLint compileStatus{};
-        glGetShaderiv(id, GL_COMPILE_STATUS, &compileStatus);
-        if (!compileStatus)
-        {
-            std::string infoLog{};
-            GLint infoLogSize{};
-            glGetShaderiv(id, GL_INFO_LOG_LENGTH, &infoLogSize);
-            infoLog.resize(infoLogSize);
-            glGetShaderInfoLog(id, infoLogSize, nullptr, &infoLog[0u]);
-
-            return std::make_optional(infoLog);
-        }
-
-        return std::nullopt;
-    }
-
-    inline std::optional<std::string> LinkProgram(RendererID id) noexcept
-    {
-        ON_DEBUG([&]() {
-            spdlog::debug("[OpenGL] Linking a program (ID: {})...", id);
-            spdlog::debug("[OpenGL] - Checking if provided ID is a program...");
-            if (!IsProgram(id))
-            {
-                spdlog::critical("[OpenGL](LinkProgram) Provided ID (= {}) is not a program!", id);
-                std::abort();
-            }
-        });
-
-        glLinkProgram(id);
-
-        GLint linkStatus{};
-        glGetProgramiv(id, GL_LINK_STATUS, &linkStatus);
-        if (!linkStatus)
-        {
-            std::string infoLog{};
-            GLint infoLogSize{};
-            glGetProgramiv(id, GL_INFO_LOG_LENGTH, &infoLogSize);
-            infoLog.resize(infoLogSize);
-            glGetProgramInfoLog(id, infoLogSize, nullptr, &infoLog[0u]);
-
-            return std::make_optional(infoLog);
-        }
-
-        return std::nullopt;
-    }
-
-    inline void AttachShader(RendererID program, RendererID shader) noexcept
-    {
-        ON_DEBUG([&]() {
-            spdlog::debug("[OpenGL] Attaching a shader (ID: {}) to the program (ID: {})!", shader, program);
-            spdlog::debug("[OpenGL] - Checking if provided ID is a shader...");
-            if (!IsShader(shader))
-            {
-                spdlog::critical("[OpenGL](AttachShader) Provided ID (= {}) is not a shader!", shader);
-                std::abort();
-            }
-            spdlog::debug("[OpenGL] - Checking if provided ID is a program...");
-            if (!IsProgram(program))
-            {
-                spdlog::critical("[OpenGL](AttachShader) Provided ID (= {}) is not a program!", program);
-                std::abort();
-            }
-        });
-
-        return glAttachShader(program, shader);
-    }
-}
-
 Shader::Shader(const ShaderProps& props) noexcept
 {
     for (const auto& [type, file] : props.Sources)
@@ -176,7 +40,8 @@ Shader::Shader(const ShaderProps& props) noexcept
 
 Shader::~Shader() noexcept
 {
-    OpenGLCommand::DeleteProgram(m_RendererID);
+    if (m_RendererID != c_EmptyValue<RendererID>)
+        glDeleteProgram(m_RendererID);
 }
 
 bool Shader::LoadSource(const ShaderType type, const std::string& source) noexcept
@@ -201,6 +66,16 @@ bool Shader::LoadSource(const ShaderType type, const FileManager& source) noexce
     return Shader::InternalLoadSource(type, source);
 }
 
+bool Shader::OnInitialize() noexcept
+{
+    if (m_RendererID != c_EmptyValue<RendererID>)
+        glDeleteProgram(m_RendererID);
+
+    //?...
+
+    return true;
+}
+
 bool Shader::Compile() noexcept
 {
     bool retval{ true };
@@ -215,22 +90,32 @@ bool Shader::Compile() noexcept
 
 bool Shader::Link() noexcept
 {
-    auto program{ OpenGLCommand::CreateProgram() };
+    auto program{ glCreateProgram() };
 
     for (const auto& it : m_Handles)
     {
         if (it == c_EmptyValue<RendererID>) continue;
-        OpenGLCommand::AttachShader(program, it);
+        glAttachShader(program, it);
     }
-    
-    if (const auto infoLog{ OpenGLCommand::LinkProgram(program) })
+
+    glLinkProgram(program);
+
+    GLint linkStatus{};
+    glGetProgramiv(program, GL_LINK_STATUS, &linkStatus);
+    if (!linkStatus)
     {
-        spdlog::error("Failed to link the shader program (ID: {})!\nOpenGL Info Log: {}", program, infoLog.value());
+        GLint infoLogSize{};
+        glGetProgramiv(program, GL_INFO_LOG_LENGTH, &infoLogSize);
+
+        std::string infoLog(infoLogSize, ' ');
+        glGetProgramInfoLog(program, infoLogSize, nullptr, &infoLog[0u]);
+
+        spdlog::error("Failed to link the shader program (ID: {})!\nOpenGL Info Log: {}", program, infoLog);
         return false;
     }
 
     if (m_RendererID != c_EmptyValue<RendererID>)
-        OpenGLCommand::DeleteProgram(m_RendererID);
+        glDeleteProgram(m_RendererID);
 
     m_RendererID = program;
     return true;
@@ -238,12 +123,12 @@ bool Shader::Link() noexcept
 
 void Shader::Bind() const
 {
-    OpenGLCommand::UseProgram(m_RendererID);
+    glUseProgram(m_RendererID);
 }
 
 void Shader::Unbind() const
 {
-    OpenGLCommand::UseProgram(c_EmptyValue<RendererID>);
+    glUseProgram(c_EmptyValue<RendererID>);
 }
 
 bool Shader::InternalLoadSource(const ShaderType type, const FileManager& source) noexcept
@@ -255,7 +140,13 @@ bool Shader::InternalLoadSource(const ShaderType type, const FileManager& source
     //     return false;
     // }
 
-    m_Handles [EnumHelpers::ToIndex(type)] = OpenGLCommand::CreateShader(type, source.GetContent());
+    RendererID id{ glCreateShader(EnumHelpers::MapEnumClass(type, Internal::c_ShaderGLType)) };
+
+    const auto content{ source.GetContent() };
+    const auto csource{ content.c_str() };
+    glShaderSource(id, 1, &csource, nullptr);
+
+    m_Handles [EnumHelpers::ToIndex(type)] = id;
     m_Sources [EnumHelpers::ToIndex(type)] = source;
     m_Compiled[EnumHelpers::ToIndex(type)] = false;
 
@@ -267,10 +158,20 @@ bool Shader::InternalCompileShader(const std::size_t index)
     if (m_Compiled[index]) return true;
 
     const auto id{ m_Handles[index] };
-    if (const auto infoLog{ OpenGLCommand::CompileShader(id) })
+    glCompileShader(id);
+
+    GLint compileStatus{};
+    glGetShaderiv(id, GL_COMPILE_STATUS, &compileStatus);
+    if (!compileStatus)
     {
+        GLint infoLogSize{};
+        glGetShaderiv(id, GL_INFO_LOG_LENGTH, &infoLogSize);
+
+        std::string infoLog(infoLogSize, ' ');
+        glGetShaderInfoLog(id, infoLogSize, nullptr, &infoLog[0u]);
+
         spdlog::error("Failed to compile a shader (ID: {}, Name: {})!\nOpenGL Info Log: {}",
-            id, EnumHelpers::MapEnumClass(EnumHelpers::ToEnumClass<ShaderType>(index), Internal::c_ShaderStringName), infoLog.value());
+            id, EnumHelpers::MapEnumClass(EnumHelpers::ToEnumClass<ShaderType>(index), Internal::c_ShaderStringName), infoLog);
         return false;
     }
 

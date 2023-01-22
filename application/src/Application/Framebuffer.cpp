@@ -13,7 +13,7 @@ Framebuffer::~Framebuffer()
         glDeleteFramebuffers(1, &m_RendererID);
 }
 
-bool Framebuffer::Initialize() noexcept
+bool Framebuffer::OnInitialize() noexcept
 {
     if (m_RendererID != c_EmptyValue<RendererID>)
         glDeleteFramebuffers(1, &m_RendererID);
@@ -22,9 +22,9 @@ bool Framebuffer::Initialize() noexcept
     glBindFramebuffer(GL_FRAMEBUFFER, m_RendererID);
 
     m_TextureColorbuffer = Create<Texture2D>({ .Size = m_Size, });
-    if (!m_TextureColorbuffer->Initialize()) return false;
+    if (!m_TextureColorbuffer->OnInitialize()) return false;
     m_TextureColorbuffer->Bind();
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_TextureColorbuffer->GetHandle(), 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_TextureColorbuffer->GetResourceHandle(), 0);
 
     glGenRenderbuffers(1, &m_Renderbuffer);
     glBindRenderbuffer(GL_RENDERBUFFER, m_Renderbuffer);

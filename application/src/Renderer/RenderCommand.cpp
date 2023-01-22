@@ -9,6 +9,14 @@ namespace Renderer::RenderCommand
         glViewport(x, y, width, height);
     }
 
+    void SetDepthTest(bool flag)
+    {
+        if (flag)
+            glEnable(GL_DEPTH_TEST);
+        else
+            glDisable(GL_DEPTH_TEST);
+    }
+
     void SetClearColor(const glm::vec4& color)
     {
         glClearColor(color.r, color.g, color.b, color.a);
@@ -21,6 +29,14 @@ namespace Renderer::RenderCommand
 
     void DrawIndexed(const std::shared_ptr<VertexArray>& vertexArray)
     {
+        glDrawElements(GL_TRIANGLES, vertexArray->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, nullptr);
+    }
+
+    void DrawIndexed(const std::shared_ptr<VertexArray>& vertexArray, const std::shared_ptr<Texture2D>& texture)
+    {
+        glActiveTexture(GL_TEXTURE0);
+        texture->Bind();
+
         glDrawElements(GL_TRIANGLES, vertexArray->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, nullptr);
     }
 }

@@ -40,7 +40,7 @@ VertexArray::~VertexArray()
         glDeleteVertexArrays(1, &m_RendererID);
 }
 
-bool VertexArray::Initialize() noexcept
+bool VertexArray::OnInitialize() noexcept
 {
     if (m_RendererID != c_EmptyValue<RendererID>)
         glDeleteVertexArrays(1, &m_RendererID);

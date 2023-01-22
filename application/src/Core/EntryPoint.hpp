@@ -3,19 +3,11 @@
 #include "Application/Application.hpp"
 #include "Utility/Checker.hpp"
 
+std::unique_ptr<Application> CreateApplication() noexcept;
+
 int main(int argc, char** argv)
 {
-    /*
-        EngineAllocator::Create(Unique/Shared)<>() will take care of:
-            - allocating the memory for the object,
-            - informs what is being allocated (name, size, id, ...).
-    */
-    // auto application{ EngineAllocator::CreateUnique<Application>() };
-
-    auto application{ std::make_unique<Application>(ApplicationProps{
-        .Name       = "Application",
-        .WindowSize = { 800u, 600u, },
-    }) };
+    auto application{ CreateApplication() };
 
     if (!Checker::PerformSequence(spdlog::level::critical, {
         { [&application]() { return application.get();         }, "Failed to create the application!",     },

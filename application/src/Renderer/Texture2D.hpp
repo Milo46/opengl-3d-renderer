@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Renderer/RendererCore.hpp"
-#include "Renderer/Bindable.hpp"
 
 #include "Utility/NonCopyable.hpp"
 
@@ -41,10 +40,7 @@ struct Texture2DProps
     std::string Filepath{ "" };
 };
 
-class Texture2D
-    : public NonCopyable<Texture2D>,
-      public RendererElement,
-      public Bindable
+class Texture2D : public RendererResource
 {
 public:
     DECLARE_CREATABLE(Texture2D);
@@ -58,13 +54,18 @@ public:
     inline auto GetHeight() const noexcept { return m_Size.y; }
 
 public:
-    bool Initialize() noexcept;
+    virtual bool OnInitialize() noexcept override;
 
 public:
     virtual void Bind() const override;
     virtual void Unbind() const override;
 
+public:
+    inline virtual RendererID GetResourceHandle() const override { return m_RendererID; }
+
 private:
+    RendererID m_RendererID{ c_EmptyValue<RendererID> };
+
     std::string m_Filepath{};
     glm::vec2 m_Size{};
 

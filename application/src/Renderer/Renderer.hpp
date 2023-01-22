@@ -10,6 +10,15 @@
 
 RENDERER_CODE_BEGIN
 
+// struct PlaneQuery
+// {
+//     glm::vec3 Size{};
+//     glm::vec3 Position{};
+//     glm::vec3 Rotation{};
+//     glm::vec3 Color{};
+//     std::shared_ptr<Texture2D> Texture{ nullptr };
+// };
+
 class Renderer2D
 {
 public: // experimental (do not deploy)
@@ -24,7 +33,8 @@ public:
     static void BeginScene(const Camera* camera);
     static void EndScene();
 
-    static void DrawPlane(const glm::vec3& size, const glm::vec3& position, const glm::vec3& color = glm::vec3(1.0f));
+    static void DrawPlane(const glm::vec3& size, const glm::vec3& position, const glm::vec3& color);
+    static void DrawPlane(const glm::vec3& size, const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& color);
 };
 
 RENDERER_CODE_END

@@ -51,7 +51,7 @@ Texture2D::~Texture2D()
         glDeleteTextures(1, &m_RendererID);
 }
 
-bool Texture2D::Initialize() noexcept
+bool Texture2D::OnInitialize() noexcept
 {
     if (m_RendererID != c_EmptyValue<RendererID>)
         glDeleteTextures(1, &m_RendererID);

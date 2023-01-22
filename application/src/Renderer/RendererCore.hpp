@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Utility/NonCopyable.hpp"
+
 #include <memory>
 
 #define RENDERER_CODE_BEGIN namespace Renderer {
@@ -29,17 +31,25 @@ namespace Renderer
     template<typename _Ty> constexpr inline auto c_EmptyValue{ GetArithmetic<_Ty>(0) };
     template<typename _Ty> constexpr inline auto c_InvalidValue{ static_cast<_Ty>(-1) };
 
-    class RendererElement
+    class RendererResource
     {
-    public:
-        virtual ~RendererElement() = default;
-        const RendererID GetHandle() const noexcept;
+    public: // #1. Is virtually destructible.
+        explicit RendererResource() noexcept = default;
+        virtual ~RendererResource() noexcept = default;
 
-    protected:
-        explicit RendererElement() = default;
+    public: // #2. Is noncopyable.
+        RendererResource(const RendererResource&) = delete;
+        RendererResource& operator=(const RendererResource&) = delete;
 
-    protected:
-        RendererID m_RendererID{ c_EmptyValue<RendererID> };
+    public: // #3. Can be bounded and unbounded.
+        virtual void Bind() const = 0;
+        virtual void Unbind() const = 0;
+
+    public: // #4. First opengl calls and allocation must be done here.
+        virtual bool OnInitialize() noexcept = 0;
+
+    public: // #5. Returns the ID given by the graphics API.
+        virtual RendererID GetResourceHandle() const = 0;
     };
 
     template<typename _DefaultProps>
@@ -103,7 +113,7 @@ namespace Renderer::EnumHelpers
     template<> \
     inline std::shared_ptr<_ClassName> Create<_ClassName, _ClassName::DefaultPropsType>(const _ClassName::DefaultPropsType& props) noexcept \
     { \
-        static_assert(std::is_base_of_v<RendererElement, _ClassName>); \
+        static_assert(std::is_base_of_v<RendererResource, _ClassName>); \
         return std::make_shared<_ClassName>(props); \
     }
 

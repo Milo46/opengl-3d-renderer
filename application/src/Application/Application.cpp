@@ -32,18 +32,18 @@ Application::~Application()
 
 bool Application::Initialize() noexcept
 {
+    m_Framebuffer = Renderer::Create<Renderer::Framebuffer>({ .Size = { 800u, 600u, }, });
+
     if (!Checker::PerformSequence(spdlog::level::critical, {
-        { [this]() { return Filesystem::Initialize();             }, "Failed to initialize the filesystem!", },
-        { [this]() { return Logger::Initialize();                 }, "Failed to initialize the logger!",     },
-        { [this]() { return m_Window->Initialize();               }, "Failed to initialize the window!",     },
-        { [this]() { return Renderer::Renderer2D::Initialize();   }, "Failed to initialize the renderer!",   },
-        { [this]() { return m_ImGuiContext->Initialize(m_Window); }, "Failed to initialize ImGui context!",  },
+        { [this]() { return Filesystem::Initialize();             }, "Failed to initialize the filesystem!",  },
+        { [this]() { return Logger::Initialize();                 }, "Failed to initialize the logger!",      },
+        { [this]() { return m_Window->Initialize();               }, "Failed to initialize the window!",      },
+        { [this]() { return Renderer::Renderer2D::Initialize();   }, "Failed to initialize the renderer!",    },
+        { [this]() { return m_ImGuiContext->Initialize(m_Window); }, "Failed to initialize ImGui context!",   },
+        { [this]() { return m_Framebuffer->OnInitialize();        }, "Failed to initialize the framebuffer!", },
     })) return false;
 
     m_ShaderData.Extract(Renderer::Renderer2D::GetFlatShader());
-
-    m_Framebuffer = Renderer::Create<Renderer::Framebuffer>({ .Size = { 800u, 600u, }, });
-    if (!m_Framebuffer->Initialize()) return false;
 
     return true;
 }
@@ -87,14 +87,13 @@ void Application::Run() noexcept
         m_Camera.OnUpdate(m_UpdateAspectRatio);
 
         m_Framebuffer->Bind();
-        glEnable(GL_DEPTH_TEST);
+        Renderer::RenderCommand::SetDepthTest(true);
         Application::OnUpdate(m_Timestamp);
         Application::OnRenderViewport();
 
-        m_TriangleCount = Renderer::Renderer2D::GetTriangleCount();
-
         m_Framebuffer->Unbind();
-        glDisable(GL_DEPTH_TEST);
+        Renderer::RenderCommand::SetDepthTest(false);
+        // Renderer::RenderCommand::SetViewport(0, 0, m_Window->GetSize().x, m_Window->GetSize().y);s
         Renderer::RenderCommand::SetClearColor(glm::vec4(1.0f));
         Renderer::RenderCommand::Clear();
         m_ImGuiContext->PreRender();
@@ -115,6 +114,7 @@ void Application::OnUpdate(const Timestamp& timestamp) noexcept
     glm::vec3 newPosition{};
     newPosition.x = radius * sin(timestamp.TotalTime);
     newPosition.z = radius * cos(timestamp.TotalTime);
+    newPosition.y = tan(timestamp.TotalTime);
 
     m_Camera
         .SetPosition(newPosition)
@@ -123,7 +123,9 @@ void Application::OnUpdate(const Timestamp& timestamp) noexcept
 
 void Application::OnRenderViewport() noexcept
 {
-    Renderer::RenderCommand::SetViewport(0, 0, 800, 600);
+    const auto& framebufferSize{ m_Framebuffer->GetColorbuffer()->GetSize() };
+
+    Renderer::RenderCommand::SetViewport(0, 0, framebufferSize.x, framebufferSize.y);
     Renderer::RenderCommand::SetClearColor({ 0.2f, 0.4f, 0.6f, 1.0f, });
     Renderer::RenderCommand::Clear();
 
@@ -134,6 +136,7 @@ void Application::OnRenderViewport() noexcept
     Renderer::Renderer2D::DrawPlane({ 1.0f, 1.0f, 0.0f, }, { 0.0f, 0.0f, 0.1f, }, rectangleColor1 + rectangleColor2);
     Renderer::Renderer2D::DrawPlane({ 0.5f, 0.5f, 0.0f, }, { 0.5f, 0.5f, 0.0f, }, rectangleColor1);
     Renderer::Renderer2D::DrawPlane({ 0.75f, 0.75f, 0.0f, }, { 0.0f, 0.25f, -0.1f, }, rectangleColor2);
+    Renderer::Renderer2D::DrawPlane({ 1.0f, 1.0f, 0.0f, }, { 0.0f, 0.0f, 1.0f, }, { 90.0f, 0.0f, 0.0f, }, glm::vec3(1.0f));
     Renderer::Renderer2D::EndScene();
 }
 
@@ -185,11 +188,11 @@ void Application::PanelViewport(ImGuiIO& io, const Timestamp& timestamp)
 
     ImVec2 wsize{ ImGui::GetContentRegionAvail() };
     // ImGui::Image(reinterpret_cast<ImTextureID>(m_TextureColorbuffer->GetHandle()), wsize, ImVec2(0, 1), ImVec2(1, 0));
-    ImGui::Image(reinterpret_cast<ImTextureID>(m_Framebuffer->GetColorbuffer()->GetHandle()), wsize, ImVec2(0, 1), ImVec2(1, 0));
+    ImGui::Image(reinterpret_cast<ImTextureID>(m_Framebuffer->GetColorbuffer()->GetResourceHandle()), wsize, ImVec2(0, 1), ImVec2(1, 0));
     ImGui::SetCursorPos(ImVec2(5, 25)); ImGui::Text("Viewport Size: (%f, %f)", wsize.x, wsize.y);
     ImGui::SetCursorPos(ImVec2(5, 45)); ImGui::Text("FPS ImGui: %f", 1.0f / io.DeltaTime);
     ImGui::SetCursorPos(ImVec2(5, 65)); ImGui::Text("FPS Viewport: %f", 1.0f / timestamp.DeltaTime);
-    ImGui::SetCursorPos(ImVec2(5, 85)); ImGui::Text("Triangles rendered: %d", m_TriangleCount);
+    ImGui::SetCursorPos(ImVec2(5, 85)); ImGui::Text("Triangles rendered: %d", Renderer::Renderer2D::GetTriangleCount());
     ImGui::SetCursorPos(ImVec2(5, 105));
     if (ImGui::Button("Toggle VSync"))
     {
@@ -267,4 +270,13 @@ void Application::PanelShader(ImGuiIO& io, const Timestamp& timestamp)
     }
 
     ImGui::End();
+}
+
+std::unique_ptr<Application> CreateApplication() noexcept
+{
+    ApplicationProps props{};
+    props.Name       = "UserApplication";
+    props.WindowSize = { 800u, 600u, };
+
+    return std::make_unique<Application>(props);
 }

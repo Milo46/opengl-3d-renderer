@@ -5,7 +5,6 @@
 #include <vector>
 
 #include "RendererCore.hpp"
-#include "Renderer/Bindable.hpp"
 
 #include "Utility/NonCopyable.hpp"
 
@@ -69,10 +68,7 @@ struct VertexBufferProps
     BufferLayout Layout{};
 };
 
-class VertexBuffer
-    : public NonCopyable<VertexBuffer>,
-      public RendererElement,
-      public Bindable
+class VertexBuffer : public RendererResource
 {
 public:
     DECLARE_CREATABLE(VertexBuffer);
@@ -81,18 +77,21 @@ public:
     explicit VertexBuffer(const VertexBufferProps& props);
     ~VertexBuffer();
 
-    inline const auto& GetLayout() const noexcept { return m_Layout; }
+    inline const auto& GetLayout() const noexcept { return m_Props.Layout; }
 
 public:
-    bool Initialize() noexcept;
+    virtual bool OnInitialize() noexcept override;
 
 public:
     virtual void Bind() const override;
     virtual void Unbind() const override;
 
+public:
+    inline virtual RendererID GetResourceHandle() const override { return m_RendererID; }
+
 private:
+    RendererID m_RendererID{ c_EmptyValue<RendererID> };
     VertexBufferProps m_Props{};
-    BufferLayout m_Layout{};
 };
 
 struct IndexBufferProps
@@ -102,10 +101,7 @@ struct IndexBufferProps
     BufferUsage Usage{ BufferUsage::StaticDraw };
 };
 
-class IndexBuffer
-    : public NonCopyable<IndexBuffer>,
-      public RendererElement,
-      public Bindable
+class IndexBuffer : public RendererResource
 {
 public:
     DECLARE_CREATABLE(IndexBuffer);
@@ -114,18 +110,21 @@ public:
     explicit IndexBuffer(const IndexBufferProps& props);
     ~IndexBuffer();
 
-    inline const auto GetCount() const noexcept { return m_Count; }
+    inline const auto GetCount() const noexcept { return m_Props.Count; }
 
 public:
-    bool Initialize() noexcept;
+    virtual bool OnInitialize() noexcept override;
 
 public:
     virtual void Bind() const override;
     virtual void Unbind() const override;
 
+public:
+    inline virtual RendererID GetResourceHandle() const override { return m_RendererID; }
+
 private:
+    RendererID m_RendererID{ c_EmptyValue<RendererID> };
     IndexBufferProps m_Props{};
-    std::size_t m_Count{ 0u };
 };
 
 DEFINE_DEFAULT_CREATE(VertexBuffer);
