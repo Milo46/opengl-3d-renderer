@@ -31,17 +31,6 @@ static auto ComposeModelMatrix(const glm::vec3& translation, const glm::vec3& sc
     return model;
 }
 
-struct RendererVertex
-{
-    glm::vec3 Position;
-    glm::vec2 Texcoord;
-
-    inline static const BufferLayout c_Layout{
-        { LayoutDataType::Float3, "a_Position", },
-        { LayoutDataType::Float2, "a_Texcoord", },
-    };
-};
-
 struct RendererData
 {
     std::shared_ptr<VertexArray> PlaneVArray;
@@ -178,6 +167,20 @@ void Renderer2D::DrawPlane(const glm::vec3& size, const glm::vec3& position, con
 
     s_RendererData->TrianglesCountTemp +=
         s_RendererData->PlaneVArray->GetIndexBuffer()->GetCount() / 3u;
+}
+
+void Renderer2D::DrawArrays(const std::shared_ptr<VertexArray>& vertexArray, std::size_t count)
+{
+    const auto model{ ComposeModelMatrix({ 0.0f, -0.5f, 0.0f, }, glm::vec3(0.4f)) };
+
+    s_RendererData->FlatShader->SetUniform("u_ModelMatrix", model);
+    s_RendererData->FlatShader->SetUniform("u_Color", glm::vec3(1.0f));
+
+    glActiveTexture(GL_TEXTURE0);
+    s_RendererData->FlatTexture->Bind();
+
+    vertexArray->Bind();
+    RenderCommand::DrawArrays(vertexArray, count);
 }
 
 RENDERER_CODE_END

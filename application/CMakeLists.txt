@@ -28,6 +28,7 @@ add_executable(${PROJECT_NAME}
 
     src/Application/Application.cpp
     src/Application/Framebuffer.cpp
+    src/Application/OBJLoader.cpp
 
     src/Core/EntryPoint.cpp
 )
@@ -40,6 +41,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC
+    ${CMAKE_SOURCE_DIR}/vendor/entt/src
     ${CMAKE_SOURCE_DIR}/vendor/GLAD/include
     ${CMAKE_SOURCE_DIR}/vendor/GLFW/include
     ${CMAKE_SOURCE_DIR}/vendor/glm

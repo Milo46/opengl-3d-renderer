@@ -39,4 +39,9 @@ namespace Renderer::RenderCommand
 
         glDrawElements(GL_TRIANGLES, vertexArray->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, nullptr);
     }
+
+    void DrawArrays(const std::shared_ptr<VertexArray>& vertexArray, std::size_t count)
+    {
+        glDrawArrays(GL_TRIANGLES, 0, { static_cast<GLsizei>(count) });
+    }
 }

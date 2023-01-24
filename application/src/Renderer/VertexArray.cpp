@@ -70,7 +70,11 @@ bool VertexArray::OnInitialize() noexcept
         );
     }
 
-    if (!m_IndexBuffer.get() || !m_IndexBuffer->GetCount()) return false;
+    if (!m_IndexBuffer.get() || !m_IndexBuffer->GetCount())
+    {
+        spdlog::warn("Initialized a VertexArray without indices! [id={}]", m_RendererID);
+        return true;
+    }
 
     m_IndexBuffer->Bind();
 

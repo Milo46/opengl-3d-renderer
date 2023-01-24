@@ -10,14 +10,16 @@
 
 RENDERER_CODE_BEGIN
 
-// struct PlaneQuery
-// {
-//     glm::vec3 Size{};
-//     glm::vec3 Position{};
-//     glm::vec3 Rotation{};
-//     glm::vec3 Color{};
-//     std::shared_ptr<Texture2D> Texture{ nullptr };
-// };
+struct RendererVertex
+{
+    glm::vec3 Position;
+    glm::vec2 Texcoord;
+
+    inline static const BufferLayout c_Layout{
+        { LayoutDataType::Float3, "a_Position", },
+        { LayoutDataType::Float2, "a_Texcoord", },
+    };
+};
 
 class Renderer2D
 {
@@ -35,6 +37,9 @@ public:
 
     static void DrawPlane(const glm::vec3& size, const glm::vec3& position, const glm::vec3& color);
     static void DrawPlane(const glm::vec3& size, const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& color);
+
+    // Experimental
+    static void DrawArrays(const std::shared_ptr<VertexArray>& vertexArray, std::size_t count);
 };
 
 RENDERER_CODE_END

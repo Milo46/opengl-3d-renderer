@@ -45,6 +45,26 @@ bool Application::Initialize() noexcept
 
     m_ShaderData.Extract(Renderer::Renderer2D::GetFlatShader());
 
+    m_TeapotOBJData = LoadOBJFile("assets/models/teapot.obj");
+    spdlog::info("Teapot indices count: {}", m_TeapotOBJData.size());
+
+    std::vector<Renderer::RendererVertex> convertedTeapotData{};
+    convertedTeapotData.reserve(m_TeapotOBJData.size());
+    for (const auto& [position, normal, texcoord] : m_TeapotOBJData)
+        convertedTeapotData.push_back({ position, texcoord, });
+
+    auto teapotVB{ Renderer::Create<Renderer::VertexBuffer>({
+        .Data   = convertedTeapotData.data(),
+        .Size   = convertedTeapotData.size() * sizeof(decltype(convertedTeapotData)::value_type),
+        .Layout = decltype(convertedTeapotData)::value_type::c_Layout,
+    }) };
+    if (!teapotVB->OnInitialize()) return false;
+
+    m_TeapotVA = Renderer::Create<Renderer::VertexArray>({
+        .VertexBufferPtr = teapotVB, 
+    });
+    if (!m_TeapotVA->OnInitialize()) return false;
+
     return true;
 }
 
@@ -133,10 +153,14 @@ void Application::OnRenderViewport() noexcept
     const glm::vec3& rectangleColor2{ 1.f, .3f, .3f, };
 
     Renderer::Renderer2D::BeginScene(&m_Camera);
-    Renderer::Renderer2D::DrawPlane({ 1.0f, 1.0f, 0.0f, }, { 0.0f, 0.0f, 0.1f, }, rectangleColor1 + rectangleColor2);
-    Renderer::Renderer2D::DrawPlane({ 0.5f, 0.5f, 0.0f, }, { 0.5f, 0.5f, 0.0f, }, rectangleColor1);
-    Renderer::Renderer2D::DrawPlane({ 0.75f, 0.75f, 0.0f, }, { 0.0f, 0.25f, -0.1f, }, rectangleColor2);
-    Renderer::Renderer2D::DrawPlane({ 1.0f, 1.0f, 0.0f, }, { 0.0f, 0.0f, 1.0f, }, { 90.0f, 0.0f, 0.0f, }, glm::vec3(1.0f));
+
+    // Renderer::Renderer2D::DrawPlane({ 1.0f, 1.0f, 0.0f, }, { 0.0f, 0.0f, 0.1f, }, rectangleColor1 + rectangleColor2);
+    // Renderer::Renderer2D::DrawPlane({ 0.5f, 0.5f, 0.0f, }, { 0.5f, 0.5f, 0.0f, }, rectangleColor1);
+    // Renderer::Renderer2D::DrawPlane({ 0.75f, 0.75f, 0.0f, }, { 0.0f, 0.25f, -0.1f, }, rectangleColor2);
+    // Renderer::Renderer2D::DrawPlane({ 1.0f, 1.0f, 0.0f, }, { 0.0f, 0.0f, 1.0f, }, { 90.0f, 0.0f, 0.0f, }, glm::vec3(1.0f));
+
+    Renderer::Renderer2D::DrawArrays(m_TeapotVA, m_TeapotOBJData.size());
+
     Renderer::Renderer2D::EndScene();
 }
 

@@ -11,6 +11,7 @@
 #include "ImGui/ImGuiContext.hpp"
 
 #include "Framebuffer.hpp"
+#include "OBJLoader.hpp"
 
 struct Timestamp // or Timepoint? Help.
 {
@@ -123,6 +124,9 @@ private:
     bool m_WireframeMode{ true };
 
     std::shared_ptr<Renderer::Framebuffer> m_Framebuffer{};
+
+    std::vector<OBJImportData> m_TeapotOBJData{};
+    std::shared_ptr<Renderer::VertexArray> m_TeapotVA{};
 
     Renderer::ShaderDataExtractor m_ShaderData{};
 };
