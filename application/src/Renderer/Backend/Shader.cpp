@@ -3,13 +3,7 @@
 #include <spdlog/spdlog.h>
 #include <optional>
 
-#ifdef NDEBUG
-#   define ON_DEBUG(_Func)
-#else
-#   define ON_DEBUG(_Func) _Func()
-#endif
-
-RENDERER_CODE_BEGIN
+NAMESPACE_BEGIN(Renderer)
 
 namespace Internal
 {
@@ -200,4 +194,4 @@ void ShaderDataExtractor::Extract(const std::shared_ptr<Shader>& shader) noexcep
     }
 }
 
-RENDERER_CODE_END
+NAMESPACE_END(Renderer)

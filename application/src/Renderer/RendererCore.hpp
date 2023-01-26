@@ -1,65 +1,20 @@
 #pragma once
 
-#include "Utility/NonCopyable.hpp"
-
+#include <stdint.h>
 #include <memory>
 
-#define RENDERER_CODE_BEGIN namespace Renderer {
-#define RENDERER_CODE_END   }
+#define NAMESPACE_BEGIN(_Name) namespace _Name {
+#define NAMESPACE_END(_Name)   }
 
-/**
- * Clean this up, please.
- */
-namespace Renderer
-{
-    // Unfortunately I cannot include glad here ;(
-    // So I have to believe that glad types are correct.
-    using RendererID       = unsigned int;  // GLuint
-    using RendererEnum     = unsigned int;  // GLenum
-    using RendererSizei    = int;           // GLsizei
-    using RendererSizeiptr = long long int; // GLsizeiptr
+NAMESPACE_BEGIN(Renderer)
 
-    using IndexType = unsigned int;
+using RendererID   = uint32_t;
+using RendererEnum = uint32_t;
 
-    template<typename _Ty>
-    constexpr inline auto GetArithmetic(const _Ty& value) noexcept
-    {
-        static_assert(std::is_arithmetic_v<_Ty>);
-        return value;
-    }
+template<typename _Ty> constexpr inline auto c_EmptyValue  { static_cast<_Ty>( 0) };
+template<typename _Ty> constexpr inline auto c_InvalidValue{ static_cast<_Ty>(-1) };
 
-    template<typename _Ty> constexpr inline auto c_EmptyValue{ GetArithmetic<_Ty>(0) };
-    template<typename _Ty> constexpr inline auto c_InvalidValue{ static_cast<_Ty>(-1) };
-
-    class RendererResource
-    {
-    public: // #1. Is virtually destructible.
-        explicit RendererResource() noexcept = default;
-        virtual ~RendererResource() noexcept = default;
-
-    public: // #2. Is noncopyable.
-        RendererResource(const RendererResource&) = delete;
-        RendererResource& operator=(const RendererResource&) = delete;
-
-    public: // #3. Can be bounded and unbounded.
-        virtual void Bind() const = 0;
-        virtual void Unbind() const = 0;
-
-    public: // #4. First opengl calls and allocation must be done here.
-        virtual bool OnInitialize() noexcept = 0;
-
-    public: // #5. Returns the ID given by the graphics API.
-        virtual RendererID GetResourceHandle() const = 0;
-    };
-
-    template<typename _DefaultProps>
-    struct Creatable { using DefaultPropsType = _DefaultProps; };
-
-    template<typename _ReturnType, typename _PropsType = typename _ReturnType::DefaultPropsType>
-    inline auto Create(const _PropsType& props) noexcept -> std::shared_ptr<_ReturnType>;
-}
-
-namespace Renderer::EnumHelpers
+namespace EnumHelpers
 {
     using DefaultEnumIndexType = std::size_t;
 
@@ -106,6 +61,8 @@ namespace Renderer::EnumHelpers
     }
 }
 
+NAMESPACE_END(Renderer)
+
 #define DECLARE_CREATABLE(_ClassName) \
     using DefaultPropsType = _ClassName##Props
 
@@ -113,7 +70,7 @@ namespace Renderer::EnumHelpers
     template<> \
     inline std::shared_ptr<_ClassName> Create<_ClassName, _ClassName::DefaultPropsType>(const _ClassName::DefaultPropsType& props) noexcept \
     { \
-        static_assert(std::is_base_of_v<RendererResource, _ClassName>); \
+        static_assert(std::is_base_of_v<RendererElement, _ClassName>); \
         return std::make_shared<_ClassName>(props); \
     }
 

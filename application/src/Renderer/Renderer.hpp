@@ -1,14 +1,16 @@
 #pragma once
 
-#include "Renderer/RendererCore.hpp"
+#include "RendererCore.hpp"
+
 #include "Renderer/RenderCommand.hpp"
 
+#include "Renderer/Backend/Buffers.hpp"
+
+#include "Renderer/Camera/Camera.hpp"
 #include "Renderer/Camera/OrthographicCamera.hpp"
 #include "Renderer/Camera/PerspectiveCamera.hpp"
 
-#include <glm/glm.hpp>
-
-RENDERER_CODE_BEGIN
+NAMESPACE_BEGIN(Renderer)
 
 struct RendererVertex
 {
@@ -35,11 +37,11 @@ public:
     static void BeginScene(const Camera* camera);
     static void EndScene();
 
-    static void DrawPlane(const glm::vec3& size, const glm::vec3& position, const glm::vec3& color);
+    static void DrawPlane(const glm::vec3& size, const glm::vec3& position, const glm::vec3& color = glm::vec3(1.0f));
     static void DrawPlane(const glm::vec3& size, const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& color);
 
     // Experimental
     static void DrawArrays(const std::shared_ptr<VertexArray>& vertexArray, std::size_t count);
 };
 
-RENDERER_CODE_END
+NAMESPACE_END(Renderer)

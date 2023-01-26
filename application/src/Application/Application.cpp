@@ -7,8 +7,6 @@
 #include "Filesystem/Filesystem.hpp"
 #include "Utility/Checker.hpp"
 
-#include "Extensions/Renderer/BuffersVectorProps.hpp"
-
 Application::Application(const ApplicationProps& props) noexcept
     : m_Window      { std::make_unique<Window>(props.Name, props.WindowSize) },
       m_ImGuiContext{ std::make_unique<ImGuiBuildContext>()                  },
@@ -32,7 +30,7 @@ Application::~Application()
 
 bool Application::Initialize() noexcept
 {
-    m_Framebuffer = Renderer::Create<Renderer::Framebuffer>({ .Size = { 800u, 600u, }, });
+    m_Framebuffer = Renderer::AllocateResource<Renderer::Framebuffer>({ .Size = { 800u, 600u, }, });
 
     if (!Checker::PerformSequence(spdlog::level::critical, {
         { [this]() { return Filesystem::Initialize();             }, "Failed to initialize the filesystem!",  },
@@ -45,6 +43,7 @@ bool Application::Initialize() noexcept
 
     m_ShaderData.Extract(Renderer::Renderer2D::GetFlatShader());
 
+    // #1. Load the vertices
     m_TeapotOBJData = LoadOBJFile("assets/models/teapot.obj");
     spdlog::info("Teapot indices count: {}", m_TeapotOBJData.size());
 
@@ -53,14 +52,14 @@ bool Application::Initialize() noexcept
     for (const auto& [position, normal, texcoord] : m_TeapotOBJData)
         convertedTeapotData.push_back({ position, texcoord, });
 
-    auto teapotVB{ Renderer::Create<Renderer::VertexBuffer>({
+    auto teapotVB{ Renderer::AllocateResource<Renderer::VertexBuffer>({
         .Data   = convertedTeapotData.data(),
         .Size   = convertedTeapotData.size() * sizeof(decltype(convertedTeapotData)::value_type),
         .Layout = decltype(convertedTeapotData)::value_type::c_Layout,
     }) };
     if (!teapotVB->OnInitialize()) return false;
 
-    m_TeapotVA = Renderer::Create<Renderer::VertexArray>({
+    m_TeapotVA = Renderer::AllocateResource<Renderer::VertexArray>({
         .VertexBufferPtr = teapotVB, 
     });
     if (!m_TeapotVA->OnInitialize()) return false;
@@ -154,12 +153,12 @@ void Application::OnRenderViewport() noexcept
 
     Renderer::Renderer2D::BeginScene(&m_Camera);
 
-    // Renderer::Renderer2D::DrawPlane({ 1.0f, 1.0f, 0.0f, }, { 0.0f, 0.0f, 0.1f, }, rectangleColor1 + rectangleColor2);
-    // Renderer::Renderer2D::DrawPlane({ 0.5f, 0.5f, 0.0f, }, { 0.5f, 0.5f, 0.0f, }, rectangleColor1);
-    // Renderer::Renderer2D::DrawPlane({ 0.75f, 0.75f, 0.0f, }, { 0.0f, 0.25f, -0.1f, }, rectangleColor2);
-    // Renderer::Renderer2D::DrawPlane({ 1.0f, 1.0f, 0.0f, }, { 0.0f, 0.0f, 1.0f, }, { 90.0f, 0.0f, 0.0f, }, glm::vec3(1.0f));
+    Renderer::Renderer2D::DrawPlane({ 1.0f, 1.0f, 0.0f, }, { 0.0f, 0.0f, 0.1f, }, rectangleColor1 + rectangleColor2);
+    Renderer::Renderer2D::DrawPlane({ 0.5f, 0.5f, 0.0f, }, { 0.5f, 0.5f, 0.0f, }, rectangleColor1);
+    Renderer::Renderer2D::DrawPlane({ 0.75f, 0.75f, 0.0f, }, { 0.0f, 0.25f, -0.1f, }, rectangleColor2);
+    Renderer::Renderer2D::DrawPlane({ 1.0f, 1.0f, 0.0f, }, { 0.0f, 0.0f, 1.0f, }, { 90.0f, 0.0f, 0.0f, }, glm::vec3(1.0f));
 
-    Renderer::Renderer2D::DrawArrays(m_TeapotVA, m_TeapotOBJData.size());
+    // Renderer::Renderer2D::DrawArrays(m_TeapotVA, m_TeapotOBJData.size());
 
     Renderer::Renderer2D::EndScene();
 }

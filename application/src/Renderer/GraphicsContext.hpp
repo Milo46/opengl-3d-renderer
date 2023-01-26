@@ -4,20 +4,21 @@
 
 struct GLFWwindow;
 
-RENDERER_CODE_BEGIN
+NAMESPACE_BEGIN(Renderer)
 
 class GraphicsContext
 {
 public:
     explicit GraphicsContext(GLFWwindow* window);
 
-    bool Initialize();
-    void SwapBuffers();
+    bool Initialize() noexcept;
 
-    bool SetVSync(const bool flag);
+public:
+    void SwapBuffers();
+    bool SetVSync(bool flag);
 
 private:
-    GLFWwindow* m_WindowHandle;
+    GLFWwindow* m_WindowHandle{};
 };
 
-RENDERER_CODE_END
+NAMESPACE_END(Renderer)

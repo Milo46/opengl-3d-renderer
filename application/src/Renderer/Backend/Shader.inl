@@ -1,7 +1,7 @@
 #pragma once
 #include "Shader.hpp"
 
-RENDERER_CODE_BEGIN
+NAMESPACE_BEGIN(Renderer)
 
 template<>
 inline void Shader::SetUniform<float>(const std::string_view name, const float& value) noexcept
@@ -24,4 +24,4 @@ inline void Shader::SetUniform<glm::mat4>(const std::string_view name, const glm
     glUniformMatrix4fv(location, 1u, GL_FALSE, glm::value_ptr(value));
 }
 
-RENDERER_CODE_END
+NAMESPACE_END(Renderer)

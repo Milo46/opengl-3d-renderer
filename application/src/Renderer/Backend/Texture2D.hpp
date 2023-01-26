@@ -1,14 +1,13 @@
 #pragma once
 
-#include "Renderer/RendererCore.hpp"
+#include "RendererResource.hpp"
 
 #include "Utility/NonCopyable.hpp"
 
 #include <glm/glm.hpp>
-
 #include <string>
 
-RENDERER_CODE_BEGIN
+NAMESPACE_BEGIN(Renderer)
 
 enum class TextureWrapping
 {
@@ -40,11 +39,8 @@ struct Texture2DProps
     std::string Filepath{ "" };
 };
 
-class Texture2D : public RendererResource
+class Texture2D : public RendererResource<Texture2DProps>
 {
-public:
-    DECLARE_CREATABLE(Texture2D);
-
 public:
     explicit Texture2D(const Texture2DProps& props);
     ~Texture2D();
@@ -73,6 +69,4 @@ private:
     TextureFiltering m_Filtering{};
 };
 
-DEFINE_DEFAULT_CREATE(Texture2D);
-
-RENDERER_CODE_END
+NAMESPACE_END(Renderer)

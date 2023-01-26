@@ -1,14 +1,12 @@
 #include "Renderer.hpp"
 
+#include "Renderer/Backend/VertexArray.hpp"
+#include "Renderer/Backend/Texture2D.hpp"
+#include "Renderer/Backend/Shader.hpp"
+
 #include <spdlog/spdlog.h>
 
-#include "Renderer/VertexArray.hpp"
-#include "Renderer/Texture2D.hpp"
-#include "Renderer/Shader.hpp"
-
-#include "Extensions/Renderer/BuffersVectorProps.hpp"
-
-RENDERER_CODE_BEGIN
+NAMESPACE_BEGIN(Renderer)
 
 static auto ComposeModelMatrix(const glm::vec3& translation, const glm::vec3& rotation, const glm::vec3& scale) noexcept
 {
@@ -85,31 +83,31 @@ bool Renderer2D::Initialize()
         { 1u, 2u, 3u, }, // second triangle
     } };
 
-    auto vertexBuffer{ Create<VertexBuffer>({
+    auto vertexBuffer{ AllocateResource<VertexBuffer>({
         .Data   = rectangleVertices.data(),
         .Size   = rectangleVertices.size() * sizeof(decltype(rectangleVertices)::value_type),
         .Layout = decltype(rectangleVertices)::value_type::c_Layout,
     }) };
     if (!vertexBuffer->OnInitialize()) return false;
 
-    auto indexBuffer{ Create<IndexBuffer>({
+    auto indexBuffer{ AllocateResource<IndexBuffer>({
         .Data  = rectangleIndices.data(),
         .Count = rectangleIndices.size() * (sizeof(decltype(rectangleIndices)::value_type) / sizeof(unsigned int)),
     }) };
     if (!indexBuffer->OnInitialize()) return false;
 
-    s_RendererData->PlaneVArray = Create<VertexArray>({
+    s_RendererData->PlaneVArray = AllocateResource<VertexArray>({
         .VertexBufferPtr = vertexBuffer,
         .IndexBufferPtr  = indexBuffer,
     });
     if (!s_RendererData->PlaneVArray->OnInitialize()) return false;
 
-    s_RendererData->FlatTexture = Create<Texture2D>({
+    s_RendererData->FlatTexture = AllocateResource<Texture2D>({
         .Filepath  = "assets/textures/container.jpg",
     });
     if (!s_RendererData->FlatTexture->OnInitialize()) return false;
 
-    s_RendererData->FlatShader = Create<Shader>({
+    s_RendererData->FlatShader = AllocateResource<Shader>({
         .Sources = {
             { ShaderType::Vertex,   { "assets/shaders/vertex.glsl",   }, },
             { ShaderType::Fragment, { "assets/shaders/fragment.glsl", }, },
@@ -183,4 +181,4 @@ void Renderer2D::DrawArrays(const std::shared_ptr<VertexArray>& vertexArray, std
     RenderCommand::DrawArrays(vertexArray, count);
 }
 
-RENDERER_CODE_END
+NAMESPACE_END(Renderer)

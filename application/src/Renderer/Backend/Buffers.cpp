@@ -4,7 +4,7 @@
 #include <spdlog/spdlog.h>
 #include <glad/glad.h>
 
-RENDERER_CODE_BEGIN
+NAMESPACE_BEGIN(Renderer)
 
 #define RENDERER_ENUM_DEFINITIONS(_ClassName, _OutputType, ...) \
     constexpr static auto c_Invalid##_ClassName{ static_cast<RendererEnum>(-1) }; \
@@ -144,4 +144,4 @@ void IndexBuffer::Unbind() const
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, c_EmptyValue<RendererID>);
 }
 
-RENDERER_CODE_END
+NAMESPACE_END(Renderer)

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Renderer/Shader.hpp"
-#include "Renderer/Texture2D.hpp"
-#include "Renderer/VertexArray.hpp"
+#include "Renderer/Backend/Shader.hpp"
+#include "Renderer/Backend/Texture2D.hpp"
+#include "Renderer/Backend/VertexArray.hpp"
 
 #include "Window/Window.hpp"
 #include "Logger/Logger.hpp"

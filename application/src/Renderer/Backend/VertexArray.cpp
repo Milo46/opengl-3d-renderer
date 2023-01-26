@@ -4,7 +4,7 @@
 
 #include <spdlog/spdlog.h>
 
-RENDERER_CODE_BEGIN
+NAMESPACE_BEGIN(Renderer)
 
 namespace Internal
 {
@@ -91,4 +91,4 @@ void VertexArray::Unbind() const
     glBindVertexArray(c_EmptyValue<RendererID>);
 }
 
-RENDERER_CODE_END
+NAMESPACE_END(Renderer)

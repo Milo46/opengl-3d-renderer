@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Renderer/RendererCore.hpp"
-#include "Renderer/Buffers.hpp"
+#include "RendererResource.hpp"
+#include "Buffers.hpp"
 
-RENDERER_CODE_BEGIN
+NAMESPACE_BEGIN(Renderer)
 
 struct VertexArrayProps
 {
@@ -11,11 +11,8 @@ struct VertexArrayProps
     std::shared_ptr<IndexBuffer> IndexBufferPtr;
 };
 
-class VertexArray : public RendererResource
+class VertexArray : public RendererResource<VertexArrayProps>
 {
-public:
-    DECLARE_CREATABLE(VertexArray);
-
 public:
     explicit VertexArray(const VertexArrayProps& props);
     ~VertexArray();
@@ -39,6 +36,4 @@ private:
     std::shared_ptr<IndexBuffer> m_IndexBuffer;
 };
 
-DEFINE_DEFAULT_CREATE(VertexArray);
-
-RENDERER_CODE_END
+NAMESPACE_END(Renderer)

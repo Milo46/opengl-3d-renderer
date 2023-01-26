@@ -1,6 +1,9 @@
 #pragma once
 
-#include "RendererCore.hpp"
+#include "RendererResource.hpp"
+
+#include "Utility/FileManager.hpp"
+#include "Utility/NonCopyable.hpp"
 
 #include <unordered_map>
 #include <filesystem>
@@ -9,15 +12,13 @@
 #include <string>
 #include <array>
 
+//! >>:(
 #include <glad/glad.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "Utility/FileManager.hpp"
-#include "Utility/NonCopyable.hpp"
-
-RENDERER_CODE_BEGIN
+NAMESPACE_BEGIN(Renderer)
 
 enum class ShaderType
 {
@@ -31,11 +32,9 @@ struct ShaderProps
     std::unordered_map<ShaderType, FileManager> Sources{};
 };
 
-class Shader : public RendererResource
+class Shader : public RendererResource<ShaderProps>
 {
 public:
-    DECLARE_CREATABLE(Shader);
-
     friend struct ShaderDataExtractor;
 
 public:
@@ -77,8 +76,6 @@ private:
     std::array<bool, Shader::c_ShaderCount> m_Compiled{ false };
 };
 
-DEFINE_DEFAULT_CREATE(Shader);
-
 struct ShaderData
 {
     const RendererID ID;
@@ -86,6 +83,7 @@ struct ShaderData
     const FileManager Source;
 };
 
+// This class is useless! Move the functionality to the original Shader class!
 struct ShaderDataExtractor
 {
     std::vector<ShaderData> ShaderDataVector{};
@@ -96,6 +94,6 @@ struct ShaderDataExtractor
     void Extract(const std::shared_ptr<Shader>& shader) noexcept;
 };
 
-RENDERER_CODE_END
+NAMESPACE_END(Renderer)
 
 #include "Shader.inl"

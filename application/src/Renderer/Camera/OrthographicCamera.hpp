@@ -1,9 +1,8 @@
 #pragma once
 
-#include "Renderer/RendererCore.hpp"
-#include "Renderer/Camera/Camera.hpp"
+#include "Camera.hpp"
 
-RENDERER_CODE_BEGIN
+NAMESPACE_BEGIN(Renderer)
 
 struct OrthographicProjection
 {
@@ -11,16 +10,17 @@ struct OrthographicProjection
     float Right {  1.0f };
     float Bottom{ -1.0f };
     float Top   {  1.0f };
+
+    static glm::mat4 Calculate(const OrthographicProjection& projection);
 };
 
 class OrthographicCamera : public Camera
 {
 public:
-    OrthographicCamera(const OrthographicProjection& projection = {});
-    void SetProjection(const OrthographicProjection& projection = {});
+    explicit OrthographicCamera(const OrthographicProjection& projection = {});
 
     OrthographicCamera& SetPosition(const glm::vec3& position) noexcept;
-    OrthographicCamera& SetRotation(float rotation) noexcept;
+    OrthographicCamera& SetRotation(const float rotation) noexcept;
 
     inline const auto& GetPosition() const noexcept { return m_Position; }
     inline const auto& GetRotation() const noexcept { return m_Rotation; }
@@ -30,7 +30,7 @@ public:
     virtual const glm::mat4& GetProjectionMatrix() const override;
 
 private:
-    void UpdateData();
+    void RecalculateViewMatrix();
 
 private:
     glm::mat4 m_ViewMatrix{};
@@ -40,4 +40,4 @@ private:
     float m_Rotation{ 0.0f };
 };
 
-RENDERER_CODE_END
+NAMESPACE_END(Renderer)

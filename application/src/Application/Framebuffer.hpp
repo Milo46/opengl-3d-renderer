@@ -1,22 +1,19 @@
 #pragma once
 
 #include "Renderer/RendererCore.hpp"
-#include "Renderer/Texture2D.hpp"
+#include "Renderer/Backend/Texture2D.hpp"
 
 #include "Utility/NonCopyable.hpp"
 
-RENDERER_CODE_BEGIN
+NAMESPACE_BEGIN(Renderer)
 
 struct FramebufferProps
 {
     glm::vec2 Size{};
 };
 
-class Framebuffer : public RendererResource
+class Framebuffer : public RendererResource<FramebufferProps>
 {
-public:
-    DECLARE_CREATABLE(Framebuffer);
-
 public:
     explicit Framebuffer(const FramebufferProps& props) noexcept;
     ~Framebuffer();
@@ -40,6 +37,4 @@ private:
     std::shared_ptr<Texture2D> m_TextureColorbuffer{};
 };
 
-DEFINE_DEFAULT_CREATE(Framebuffer);
-
-RENDERER_CODE_END
+NAMESPACE_END(Renderer)

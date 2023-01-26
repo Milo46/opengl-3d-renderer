@@ -1,19 +1,20 @@
 #pragma once
 
 #include "Renderer/RendererCore.hpp"
-#include "Renderer/VertexArray.hpp"
-#include "Renderer/Texture2D.hpp"
+
+#include "Renderer/Backend/VertexArray.hpp"
+#include "Renderer/Backend/Texture2D.hpp"
 
 #include <glm/glm.hpp>
 
-RENDERER_CODE_BEGIN
+NAMESPACE_BEGIN(Renderer)
 
 namespace RenderCommand
 {
     void SetViewport(int x, int y, int width, int height);
-    
-    void SetDepthTest(bool flag);
 
+    void SetDepthTest(bool flag);
+    
     void SetClearColor(const glm::vec4& color);
     void Clear();
 
@@ -24,4 +25,4 @@ namespace RenderCommand
     void DrawArrays(const std::shared_ptr<VertexArray>& vertexArray, std::size_t count);
 }
 
-RENDERER_CODE_END
+NAMESPACE_END(Renderer)

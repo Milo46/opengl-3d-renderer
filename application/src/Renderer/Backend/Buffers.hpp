@@ -1,14 +1,14 @@
 #pragma once
 
+#include "RendererResource.hpp"
+
+#include "Utility/NonCopyable.hpp"
+
 #include <memory>
 #include <string>
 #include <vector>
 
-#include "RendererCore.hpp"
-
-#include "Utility/NonCopyable.hpp"
-
-RENDERER_CODE_BEGIN
+NAMESPACE_BEGIN(Renderer)
 
 enum class BufferUsage
 {
@@ -68,11 +68,8 @@ struct VertexBufferProps
     BufferLayout Layout{};
 };
 
-class VertexBuffer : public RendererResource
+class VertexBuffer : public RendererResource<VertexBufferProps>
 {
-public:
-    DECLARE_CREATABLE(VertexBuffer);
-
 public:
     explicit VertexBuffer(const VertexBufferProps& props);
     ~VertexBuffer();
@@ -101,11 +98,8 @@ struct IndexBufferProps
     BufferUsage Usage{ BufferUsage::StaticDraw };
 };
 
-class IndexBuffer : public RendererResource
+class IndexBuffer : public RendererResource<IndexBufferProps>
 {
-public:
-    DECLARE_CREATABLE(IndexBuffer);
-
 public:
     explicit IndexBuffer(const IndexBufferProps& props);
     ~IndexBuffer();
@@ -127,7 +121,4 @@ private:
     IndexBufferProps m_Props{};
 };
 
-DEFINE_DEFAULT_CREATE(VertexBuffer);
-DEFINE_DEFAULT_CREATE(IndexBuffer);
-
-RENDERER_CODE_END
+NAMESPACE_END(Renderer)

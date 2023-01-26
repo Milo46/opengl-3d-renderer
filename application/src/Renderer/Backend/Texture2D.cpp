@@ -8,7 +8,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
-RENDERER_CODE_BEGIN
+NAMESPACE_BEGIN(Renderer)
 
 namespace Internal
 {
@@ -118,4 +118,4 @@ void Texture2D::Unbind() const
     glBindTexture(GL_TEXTURE_2D, 0u);
 }
 
-RENDERER_CODE_END
+NAMESPACE_END(Renderer)

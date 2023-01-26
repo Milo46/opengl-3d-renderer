@@ -2,7 +2,7 @@
 
 #include <glad/glad.h>
 
-RENDERER_CODE_BEGIN
+NAMESPACE_BEGIN(Renderer)
 
 Framebuffer::Framebuffer(const FramebufferProps& props) noexcept
     : m_Size{ props.Size } {}
@@ -21,7 +21,7 @@ bool Framebuffer::OnInitialize() noexcept
     glGenFramebuffers(1, &m_RendererID);
     glBindFramebuffer(GL_FRAMEBUFFER, m_RendererID);
 
-    m_TextureColorbuffer = Create<Texture2D>({ .Size = m_Size, });
+    m_TextureColorbuffer = AllocateResource<Texture2D>({ .Size = m_Size, });
     if (!m_TextureColorbuffer->OnInitialize()) return false;
     m_TextureColorbuffer->Bind();
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_TextureColorbuffer->GetResourceHandle(), 0);
@@ -48,4 +48,4 @@ void Framebuffer::Unbind() const
     glBindFramebuffer(GL_FRAMEBUFFER, { c_EmptyValue<RendererID> });
 }
 
-RENDERER_CODE_END
+NAMESPACE_END(Renderer)
