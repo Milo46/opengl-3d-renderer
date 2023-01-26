@@ -14,4 +14,5 @@ using OBJImportData = std::tuple<
 
 std::vector<OBJImportData> LoadOBJFile(const std::string& filepath);
 
-// void LoadOBJ(const char* filename, std::vector<glm::vec4&>& vertices, std::vector<glm::vec3>& normals, std::vector<unsigned int>& elements);
+// Broken...
+void LoadOBJ(const char* filename, std::vector<glm::vec3>& vertices, std::vector<glm::vec3>& normals, std::vector<unsigned int>& elements);

@@ -43,15 +43,43 @@ bool Application::Initialize() noexcept
 
     m_ShaderData.Extract(Renderer::Renderer2D::GetFlatShader());
 
-    // #1. Load the vertices
+    // std::vector<glm::vec3> objectVertices{};
+    // std::vector<glm::vec3> objectNormals{};
+    // std::vector<unsigned int> objectElements{};
+    // LoadOBJ("assets/models/teapot.obj", objectVertices, objectNormals, objectElements);
+
+    // std::vector<Renderer::RendererVertex> convertedTeapotVertices{};
+    // convertedTeapotVertices.resize(objectVertices.size());
+    // for (std::size_t i = 0u; i < convertedTeapotVertices.size(); ++i)
+    // {
+    //     convertedTeapotVertices[i] = { objectVertices[i], glm::vec3(0.0f), };
+    // }
+
+    // auto teapotVB{ Renderer::AllocateResource<Renderer::VertexBuffer>({
+    //     .Data = convertedTeapotVertices.data(),
+    //     .Size = convertedTeapotVertices.size() * sizeof(decltype(convertedTeapotVertices)::value_type),
+    //     .Layout = decltype(convertedTeapotVertices)::value_type::c_Layout,
+    // }) };
+    // if (!teapotVB->OnInitialize()) return false;
+
+    // auto teapotIB{ Renderer::AllocateResource<Renderer::IndexBuffer>({
+    //     .Data = objectElements.data(),
+    //     .Count = objectElements.size(),
+    // }) };
+    // if (!teapotIB->OnInitialize()) return false;
+
+    // m_TeapotVA = Renderer::AllocateResource<Renderer::VertexArray>({
+    //     .VertexBufferPtr = teapotVB,
+    //     .IndexBufferPtr = teapotIB,
+    // });
+    // if (!m_TeapotVA->OnInitialize()) return false;
+
     m_TeapotOBJData = LoadOBJFile("assets/models/teapot.obj");
     spdlog::info("Teapot indices count: {}", m_TeapotOBJData.size());
-
     std::vector<Renderer::RendererVertex> convertedTeapotData{};
     convertedTeapotData.reserve(m_TeapotOBJData.size());
     for (const auto& [position, normal, texcoord] : m_TeapotOBJData)
         convertedTeapotData.push_back({ position, texcoord, });
-
     auto teapotVB{ Renderer::AllocateResource<Renderer::VertexBuffer>({
         .Data   = convertedTeapotData.data(),
         .Size   = convertedTeapotData.size() * sizeof(decltype(convertedTeapotData)::value_type),
