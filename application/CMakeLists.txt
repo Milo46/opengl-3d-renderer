@@ -4,25 +4,23 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_executable(${PROJECT_NAME}
+
     src/Utility/FileManager.cpp
     src/Utility/Checker.cpp
 
     src/Logger/Logger.cpp
-
     src/Filesystem/Filesystem.cpp
-
     src/ImGui/ImGuiContext.cpp
 
     src/Window/Window.cpp
 
+    src/Renderer/Backend/Shader.cpp
+    src/Renderer/Backend/Buffers.cpp
+    src/Renderer/Backend/VertexArray.cpp
+    src/Renderer/Backend/Texture2D.cpp
     src/Renderer/Camera/OrthographicCamera.cpp
     src/Renderer/Camera/PerspectiveCamera.cpp
-
     src/Renderer/GraphicsContext.cpp
-    src/Renderer/Shader.cpp
-    src/Renderer/Texture2D.cpp
-    src/Renderer/Buffers.cpp
-    src/Renderer/VertexArray.cpp
     src/Renderer/RenderCommand.cpp
     src/Renderer/Renderer.cpp
 
