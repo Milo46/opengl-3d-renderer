@@ -3,6 +3,7 @@
 #include "Renderer/Backend/Shader.hpp"
 #include "Renderer/Backend/Texture2D.hpp"
 #include "Renderer/Backend/VertexArray.hpp"
+#include "Renderer/Backend/Framebuffer.hpp"
 
 #include "Window/Window.hpp"
 #include "Logger/Logger.hpp"
@@ -10,7 +11,6 @@
 
 #include "ImGui/ImGuiContext.hpp"
 
-#include "Framebuffer.hpp"
 #include "OBJLoader.hpp"
 
 struct Timestamp // or Timepoint? Help.
@@ -113,6 +113,7 @@ private:
 private:
     std::unique_ptr<Window> m_Window;
     std::unique_ptr<ImGuiBuildContext> m_ImGuiContext;
+    std::unique_ptr<Renderer::Renderer3D> m_RendererContext;
     Timestamp m_Timestamp{};
 
     Renderer::PerspectiveCamera m_Camera;
@@ -125,8 +126,10 @@ private:
 
     std::shared_ptr<Renderer::Framebuffer> m_Framebuffer{};
 
-    std::vector<OBJImportData> m_TeapotOBJData{};
     std::shared_ptr<Renderer::VertexArray> m_TeapotVA{};
+    std::shared_ptr<Renderer::Texture2D> m_DiffuseMap{};
+    std::shared_ptr<Renderer::Texture2D> m_SpecularMap{};
+    std::shared_ptr<Renderer::Texture2D> m_EmissionMap{};
 
     Renderer::ShaderDataExtractor m_ShaderData{};
 };

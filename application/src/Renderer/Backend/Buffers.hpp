@@ -63,7 +63,8 @@ private:
 struct VertexBufferProps
 {
     const void* Data{ nullptr };
-    std::size_t Size{ 0u };
+    std::size_t DataSize{ 0u };
+    std::size_t VertSize{ 0u };
     BufferUsage Usage{ BufferUsage::StaticDraw };
     BufferLayout Layout{};
 };
@@ -75,6 +76,7 @@ public:
     ~VertexBuffer();
 
     inline const auto& GetLayout() const noexcept { return m_Props.Layout; }
+    inline const auto& GetSize() const noexcept { return m_Props.DataSize; }
 
 public:
     virtual bool OnInitialize() noexcept override;

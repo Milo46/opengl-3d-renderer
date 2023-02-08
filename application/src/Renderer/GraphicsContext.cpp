@@ -38,6 +38,10 @@ bool GraphicsContext::Initialize() noexcept
     glEnable(GL_DEPTH_TEST);
     glfwSwapInterval(1);
 
+    // glEnable(GL_CULL_FACE);
+    // glCullFace(GL_FRONT);
+    // glFrontFace(GL_CW);
+
     spdlog::info("OpenGL info:");
     spdlog::info("\tVendor: {}", glGetString(GL_VENDOR));
     spdlog::info("\tRenderer: {}", glGetString(GL_RENDERER));

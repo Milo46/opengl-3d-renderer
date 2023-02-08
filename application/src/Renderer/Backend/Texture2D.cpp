@@ -2,6 +2,8 @@
 
 #include <spdlog/spdlog.h>
 
+#include <algorithm>
+
 #include <array>
 #include <glad/glad.h>
 
@@ -35,7 +37,7 @@ namespace Internal
             GL_NEAREST, GL_LINEAR,
         };
 
-        return IsEnumValid(filtering) ? data.at(EnumIndex(filtering)) : c_InvalidTextureWrapping;
+        return IsEnumValid(filtering) ? data.at(EnumIndex(filtering)) : c_InvalidTextureFiltering;
     }
 }
 
@@ -94,14 +96,18 @@ bool Texture2D::OnInitialize() noexcept
         // #2. Maybe better method.
         glTextureStorage2D({ m_RendererID }, 1, { internalFormat }, { width }, { height });
         glTextureSubImage2D({ m_RendererID }, 0, 0, 0, { width }, { height }, { dataFormat }, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
+        // glGenerateMipmap(GL_TEXTURE_2D);
 
         stbi_image_free(data);
     }
     else
     {
+        const auto dataSize{ m_Size.x * m_Size.y * 4u };
+        auto data = new unsigned char[dataSize]{};
+        std::fill(data, data + static_cast<std::ptrdiff_t>(dataSize), 255u);
+
         glTextureStorage2D(m_RendererID, 1, { c_InternalFormat }, { static_cast<int>(m_Size.x) }, { static_cast<int>(m_Size.y) });
-        glTexImage2D(GL_TEXTURE_2D, 0, { c_InternalFormat }, { static_cast<int>(m_Size.x) }, { static_cast<int>(m_Size.y) }, 0, { c_DataFormat }, GL_UNSIGNED_BYTE, nullptr);
+        glTextureSubImage2D(m_RendererID, 0, 0, 0, { static_cast<int>(m_Size.x) }, { static_cast<int>(m_Size.y) }, { c_DataFormat }, GL_UNSIGNED_BYTE, data);
         // glGenerateMipmap(GL_TEXTURE_2D);
     }
 

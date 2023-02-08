@@ -18,6 +18,7 @@ add_executable(${PROJECT_NAME}
     src/Renderer/Backend/Buffers.cpp
     src/Renderer/Backend/VertexArray.cpp
     src/Renderer/Backend/Texture2D.cpp
+    src/Renderer/Backend/Framebuffer.cpp
     src/Renderer/Camera/OrthographicCamera.cpp
     src/Renderer/Camera/PerspectiveCamera.cpp
     src/Renderer/GraphicsContext.cpp
@@ -25,7 +26,6 @@ add_executable(${PROJECT_NAME}
     src/Renderer/Renderer.cpp
 
     src/Application/Application.cpp
-    src/Application/Framebuffer.cpp
     src/Application/OBJLoader.cpp
 
     src/Core/EntryPoint.cpp

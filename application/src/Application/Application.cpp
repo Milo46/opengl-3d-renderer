@@ -6,10 +6,12 @@
 
 #include "Filesystem/Filesystem.hpp"
 #include "Utility/Checker.hpp"
+#include "Utility/Timer.hpp"
 
 Application::Application(const ApplicationProps& props) noexcept
-    : m_Window      { std::make_unique<Window>(props.Name, props.WindowSize) },
-      m_ImGuiContext{ std::make_unique<ImGuiBuildContext>()                  },
+    : m_Window         { std::make_unique<Window>(props.Name, props.WindowSize) },
+      m_ImGuiContext   { std::make_unique<ImGuiBuildContext>()                  },
+      m_RendererContext{ std::make_unique<Renderer::Renderer3D>()               },
       m_Camera{ {
         .Position = { 0.0f, 0.0f, 2.0f, },
         .Ratio = m_Window->GetAspectRatio(),
@@ -30,60 +32,36 @@ Application::~Application()
 
 bool Application::Initialize() noexcept
 {
-    m_Framebuffer = Renderer::AllocateResource<Renderer::Framebuffer>({ .Size = { 800u, 600u, }, });
+    m_Framebuffer = Renderer::AllocateResource<Renderer::Framebuffer>({ .Size = { 1920, 1080, }, });
 
     if (!Checker::PerformSequence(spdlog::level::critical, {
-        { [this]() { return Filesystem::Initialize();             }, "Failed to initialize the filesystem!",  },
-        { [this]() { return Logger::Initialize();                 }, "Failed to initialize the logger!",      },
-        { [this]() { return m_Window->Initialize();               }, "Failed to initialize the window!",      },
-        { [this]() { return Renderer::Renderer2D::Initialize();   }, "Failed to initialize the renderer!",    },
-        { [this]() { return m_ImGuiContext->Initialize(m_Window); }, "Failed to initialize ImGui context!",   },
-        { [this]() { return m_Framebuffer->OnInitialize();        }, "Failed to initialize the framebuffer!", },
+        { [this]() { return Filesystem::Initialize();              }, "Failed to initialize the filesystem!",  },
+        { [this]() { return Logger::Initialize();                  }, "Failed to initialize the logger!",      },
+        { [this]() { return m_Window->Initialize();                }, "Failed to initialize the window!",      },
+        { [this]() { return m_RendererContext->OnInitialization(); }, "Failed to initialize the renderer!",    },
+        { [this]() { return m_ImGuiContext->Initialize(m_Window);  }, "Failed to initialize ImGui context!",   },
+        { [this]() { return m_Framebuffer->OnInitialize();         }, "Failed to initialize the framebuffer!", },
     })) return false;
 
-    m_ShaderData.Extract(Renderer::Renderer2D::GetFlatShader());
+    m_ShaderData.Extract(m_RendererContext->GetFlatShader());
 
-    // std::vector<glm::vec3> objectVertices{};
-    // std::vector<glm::vec3> objectNormals{};
-    // std::vector<unsigned int> objectElements{};
-    // LoadOBJ("assets/models/teapot.obj", objectVertices, objectNormals, objectElements);
+    std::vector<OBJImportData> teapotOBJData{};
 
-    // std::vector<Renderer::RendererVertex> convertedTeapotVertices{};
-    // convertedTeapotVertices.resize(objectVertices.size());
-    // for (std::size_t i = 0u; i < convertedTeapotVertices.size(); ++i)
     // {
-    //     convertedTeapotVertices[i] = { objectVertices[i], glm::vec3(0.0f), };
+        // Utility::Timer timer{ "Model loading time" };
+        teapotOBJData = LoadOBJFile("assets/models/spaceship.obj", FaceType::Triangle);
     // }
 
-    // auto teapotVB{ Renderer::AllocateResource<Renderer::VertexBuffer>({
-    //     .Data = convertedTeapotVertices.data(),
-    //     .Size = convertedTeapotVertices.size() * sizeof(decltype(convertedTeapotVertices)::value_type),
-    //     .Layout = decltype(convertedTeapotVertices)::value_type::c_Layout,
-    // }) };
-    // if (!teapotVB->OnInitialize()) return false;
+    std::vector<Renderer::Renderer3D::Vertex> convertedTeapotData{};
+    convertedTeapotData.reserve(teapotOBJData.size());
+    for (const auto& [position, normal, texcoord] : teapotOBJData)
+        convertedTeapotData.push_back({ position, normal, texcoord, });
 
-    // auto teapotIB{ Renderer::AllocateResource<Renderer::IndexBuffer>({
-    //     .Data = objectElements.data(),
-    //     .Count = objectElements.size(),
-    // }) };
-    // if (!teapotIB->OnInitialize()) return false;
-
-    // m_TeapotVA = Renderer::AllocateResource<Renderer::VertexArray>({
-    //     .VertexBufferPtr = teapotVB,
-    //     .IndexBufferPtr = teapotIB,
-    // });
-    // if (!m_TeapotVA->OnInitialize()) return false;
-
-    m_TeapotOBJData = LoadOBJFile("assets/models/teapot.obj");
-    spdlog::info("Teapot indices count: {}", m_TeapotOBJData.size());
-    std::vector<Renderer::RendererVertex> convertedTeapotData{};
-    convertedTeapotData.reserve(m_TeapotOBJData.size());
-    for (const auto& [position, normal, texcoord] : m_TeapotOBJData)
-        convertedTeapotData.push_back({ position, texcoord, });
     auto teapotVB{ Renderer::AllocateResource<Renderer::VertexBuffer>({
-        .Data   = convertedTeapotData.data(),
-        .Size   = convertedTeapotData.size() * sizeof(decltype(convertedTeapotData)::value_type),
-        .Layout = decltype(convertedTeapotData)::value_type::c_Layout,
+        .Data     = convertedTeapotData.data(),
+        .DataSize = convertedTeapotData.size(),
+        .VertSize = sizeof(decltype(convertedTeapotData)::value_type),
+        .Layout   = decltype(convertedTeapotData)::value_type::c_Layout,
     }) };
     if (!teapotVB->OnInitialize()) return false;
 
@@ -91,6 +69,24 @@ bool Application::Initialize() noexcept
         .VertexBufferPtr = teapotVB, 
     });
     if (!m_TeapotVA->OnInitialize()) return false;
+
+    m_DiffuseMap = Renderer::AllocateResource<Renderer::Texture2D>({
+        .Filepath = "assets/textures/spaceship/diffuse_map.jpg",
+    });
+    if (!m_DiffuseMap->OnInitialize()) return false;
+    m_DiffuseMap->Unbind();
+
+    m_SpecularMap = Renderer::AllocateResource<Renderer::Texture2D>({
+        .Filepath = "assets/textures/spaceship/specular_map.jpg",
+    });
+    if (!m_SpecularMap->OnInitialize()) return false;
+    m_SpecularMap->Unbind();
+
+    m_EmissionMap = Renderer::AllocateResource<Renderer::Texture2D>({
+        .Filepath = "assets/textures/spaceship/emissive_map.jpg",
+    });
+    if (!m_EmissionMap->OnInitialize()) return false;
+    m_EmissionMap->Unbind();
 
     return true;
 }
@@ -140,7 +136,7 @@ void Application::Run() noexcept
 
         m_Framebuffer->Unbind();
         Renderer::RenderCommand::SetDepthTest(false);
-        // Renderer::RenderCommand::SetViewport(0, 0, m_Window->GetSize().x, m_Window->GetSize().y);s
+        Renderer::RenderCommand::SetViewport(0, 0, m_Window->GetSize().x, m_Window->GetSize().y);
         Renderer::RenderCommand::SetClearColor(glm::vec4(1.0f));
         Renderer::RenderCommand::Clear();
         m_ImGuiContext->PreRender();
@@ -154,14 +150,14 @@ void Application::Shutdown() noexcept
     m_ImGuiContext->Shutdown();
 }
 
+float c_Radius{ 2.0f };
+
 void Application::OnUpdate(const Timestamp& timestamp) noexcept
 {
-    const float radius{ 2.0f };
-
     glm::vec3 newPosition{};
-    newPosition.x = radius * sin(timestamp.TotalTime);
-    newPosition.z = radius * cos(timestamp.TotalTime);
-    newPosition.y = tan(timestamp.TotalTime);
+    newPosition.x = c_Radius * sin(timestamp.TotalTime);
+    newPosition.z = c_Radius * cos(timestamp.TotalTime);
+    // newPosition.y = tan(timestamp.TotalTime);
 
     m_Camera
         .SetPosition(newPosition)
@@ -170,8 +166,7 @@ void Application::OnUpdate(const Timestamp& timestamp) noexcept
 
 void Application::OnRenderViewport() noexcept
 {
-    const auto& framebufferSize{ m_Framebuffer->GetColorbuffer()->GetSize() };
-
+    const auto& framebufferSize{ m_Framebuffer->GetSize() };
     Renderer::RenderCommand::SetViewport(0, 0, framebufferSize.x, framebufferSize.y);
     Renderer::RenderCommand::SetClearColor({ 0.2f, 0.4f, 0.6f, 1.0f, });
     Renderer::RenderCommand::Clear();
@@ -179,16 +174,20 @@ void Application::OnRenderViewport() noexcept
     const glm::vec3& rectangleColor1{ .3f, .5f, .0f, };
     const glm::vec3& rectangleColor2{ 1.f, .3f, .3f, };
 
-    Renderer::Renderer2D::BeginScene(&m_Camera);
+    m_RendererContext->BeginScene(&m_Camera);
+    m_RendererContext->SetLightPosition(m_Camera.GetPosition());
 
-    Renderer::Renderer2D::DrawPlane({ 1.0f, 1.0f, 0.0f, }, { 0.0f, 0.0f, 0.1f, }, rectangleColor1 + rectangleColor2);
-    Renderer::Renderer2D::DrawPlane({ 0.5f, 0.5f, 0.0f, }, { 0.5f, 0.5f, 0.0f, }, rectangleColor1);
-    Renderer::Renderer2D::DrawPlane({ 0.75f, 0.75f, 0.0f, }, { 0.0f, 0.25f, -0.1f, }, rectangleColor2);
-    Renderer::Renderer2D::DrawPlane({ 1.0f, 1.0f, 0.0f, }, { 0.0f, 0.0f, 1.0f, }, { 90.0f, 0.0f, 0.0f, }, glm::vec3(1.0f));
-
+    // Renderer::Renderer2D::DrawPlane({ 1.0f, 1.0f, 0.0f, }, { 0.0f, 0.0f, 0.1f, }, rectangleColor1 + rectangleColor2);
+    // Renderer::Renderer2D::DrawPlane({ 0.5f, 0.5f, 0.0f, }, { 0.5f, 0.5f, 0.0f, }, rectangleColor1);
+    // Renderer::Renderer2D::DrawPlane({ 0.75f, 0.75f, 0.0f, }, { 0.0f, 0.25f, -0.1f, }, rectangleColor2);
+    // Renderer::Renderer2D::DrawPlane({ 1.0f, 1.0f, 0.0f, }, { 0.0f, 0.0f, 1.0f, }, { 90.0f, 0.0f, 0.0f, }, glm::vec3(1.0f));
     // Renderer::Renderer2D::DrawArrays(m_TeapotVA, m_TeapotOBJData.size());
 
-    Renderer::Renderer2D::EndScene();
+    // m_RendererContext->DrawPlane({});
+
+    m_RendererContext->DrawArrays(m_TeapotVA, m_DiffuseMap, m_SpecularMap, m_EmissionMap, false);
+
+    m_RendererContext->EndScene();
 }
 
 void Application::OnRenderImGui(ImGuiIO& io, const Timestamp& timestamp) noexcept
@@ -238,12 +237,11 @@ void Application::PanelViewport(ImGuiIO& io, const Timestamp& timestamp)
     // }
 
     ImVec2 wsize{ ImGui::GetContentRegionAvail() };
-    // ImGui::Image(reinterpret_cast<ImTextureID>(m_TextureColorbuffer->GetHandle()), wsize, ImVec2(0, 1), ImVec2(1, 0));
-    ImGui::Image(reinterpret_cast<ImTextureID>(m_Framebuffer->GetColorbuffer()->GetResourceHandle()), wsize, ImVec2(0, 1), ImVec2(1, 0));
+    ImGui::Image(reinterpret_cast<ImTextureID>(m_Framebuffer->GetColorbufferID()), wsize, ImVec2(0, 1), ImVec2(1, 0));
     ImGui::SetCursorPos(ImVec2(5, 25)); ImGui::Text("Viewport Size: (%f, %f)", wsize.x, wsize.y);
     ImGui::SetCursorPos(ImVec2(5, 45)); ImGui::Text("FPS ImGui: %f", 1.0f / io.DeltaTime);
     ImGui::SetCursorPos(ImVec2(5, 65)); ImGui::Text("FPS Viewport: %f", 1.0f / timestamp.DeltaTime);
-    ImGui::SetCursorPos(ImVec2(5, 85)); ImGui::Text("Triangles rendered: %d", Renderer::Renderer2D::GetTriangleCount());
+    ImGui::SetCursorPos(ImVec2(5, 85)); ImGui::Text("Triangles rendered: %d", m_RendererContext->GetPrimitivesRendered());
     ImGui::SetCursorPos(ImVec2(5, 105));
     if (ImGui::Button("Toggle VSync"))
     {
@@ -255,6 +253,8 @@ void Application::PanelViewport(ImGuiIO& io, const Timestamp& timestamp)
         glPolygonMode(GL_FRONT_AND_BACK, m_WireframeMode ? GL_LINE : GL_FILL);
         m_WireframeMode = !m_WireframeMode;
     }
+    ImGui::SetCursorPos(ImVec2(5, 145));
+    ImGui::SliderFloat("Camera radius", &c_Radius, 0.0f, 300.0f);
 
     // update-viewport-size-and-position-begin
     {

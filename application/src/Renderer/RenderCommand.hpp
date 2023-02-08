@@ -18,11 +18,10 @@ namespace RenderCommand
     void SetClearColor(const glm::vec4& color);
     void Clear();
 
+    void DrawArrays(const std::shared_ptr<VertexArray>& vertexArray);
+
     void DrawIndexed(const std::shared_ptr<VertexArray>& vertexArray);
     void DrawIndexed(const std::shared_ptr<VertexArray>& vertexArray, const std::shared_ptr<Texture2D>& texture);
-
-    // Experimental
-    void DrawArrays(const std::shared_ptr<VertexArray>& vertexArray, std::size_t count);
 }
 
 NAMESPACE_END(Renderer)

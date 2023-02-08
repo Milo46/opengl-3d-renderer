@@ -27,8 +27,15 @@ void Clear()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
+void DrawArrays(const std::shared_ptr<VertexArray>& vertexArray)
+{
+    vertexArray->Bind();
+    glDrawArrays(GL_TRIANGLES, 0, { static_cast<GLsizei>(vertexArray->GetVertexBuffer()->GetSize()) });
+}
+
 void DrawIndexed(const std::shared_ptr<VertexArray>& vertexArray)
 {
+    vertexArray->Bind();
     glDrawElements(GL_TRIANGLES, { static_cast<GLsizei>(vertexArray->GetIndexBuffer()->GetCount()) }, GL_UNSIGNED_INT, nullptr);
 }
 
@@ -37,12 +44,7 @@ void DrawIndexed(const std::shared_ptr<VertexArray>& vertexArray, const std::sha
     glActiveTexture(GL_TEXTURE0);
     texture->Bind();
 
-    glDrawElements(GL_TRIANGLES, vertexArray->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, nullptr);
-}
-
-void DrawArrays(const std::shared_ptr<VertexArray>& vertexArray, std::size_t count)
-{
-    glDrawArrays(GL_TRIANGLES, 0, { static_cast<GLsizei>(count) });
+    RenderCommand::DrawIndexed(vertexArray);
 }
 
 NAMESPACE_END(RenderCommand)

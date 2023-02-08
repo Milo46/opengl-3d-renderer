@@ -22,7 +22,7 @@ public:
     OrthographicCamera& SetPosition(const glm::vec3& position) noexcept;
     OrthographicCamera& SetRotation(const float rotation) noexcept;
 
-    inline const auto& GetPosition() const noexcept { return m_Position; }
+    virtual inline const glm::vec3& GetPosition() const { return m_Position; }
     inline const auto& GetRotation() const noexcept { return m_Rotation; }
 
 public:

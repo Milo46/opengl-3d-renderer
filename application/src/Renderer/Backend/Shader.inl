@@ -4,6 +4,13 @@
 NAMESPACE_BEGIN(Renderer)
 
 template<>
+inline void Shader::SetUniform<int>(const std::string_view name, const int& value) noexcept
+{
+    const auto location{ glGetUniformLocation(m_RendererID, name.data()) };
+    glUniform1i(location, value);
+}
+
+template<>
 inline void Shader::SetUniform<float>(const std::string_view name, const float& value) noexcept
 {
     const auto location{ glGetUniformLocation(m_RendererID, name.data()) };

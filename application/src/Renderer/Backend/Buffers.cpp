@@ -93,7 +93,7 @@ bool VertexBuffer::OnInitialize() noexcept
     
     glGenBuffers(1, &m_RendererID);
     glBindBuffer(GL_ARRAY_BUFFER, { m_RendererID });
-    glBufferData(GL_ARRAY_BUFFER, { static_cast<GLsizeiptr>(m_Props.Size) }, { m_Props.Data }, { Internal::GetGLBufferUsage(m_Props.Usage) });
+    glBufferData(GL_ARRAY_BUFFER, { static_cast<GLsizeiptr>(m_Props.DataSize * m_Props.VertSize) }, { m_Props.Data }, { Internal::GetGLBufferUsage(m_Props.Usage) });
 
     return true;
 }

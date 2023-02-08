@@ -6,75 +6,49 @@
 
 #include <spdlog/spdlog.h>
 
+// Temporary, include obj loading into the main framework.
+#include "Application/OBJLoader.hpp"
+
 NAMESPACE_BEGIN(Renderer)
 
-static auto ComposeModelMatrix(const glm::vec3& translation, const glm::vec3& rotation, const glm::vec3& scale) noexcept
+glm::mat4 Translation::ComposeModelMatrix() const noexcept
 {
     auto model{ glm::identity<glm::mat4>() };
-    model = glm::translate(model, translation);
-    model = glm::rotate(model, glm::radians(rotation.x), { 1.0f, 0.0f, 0.0f, });
-    model = glm::rotate(model, glm::radians(rotation.y), { 0.0f, 1.0f, 0.0f, });
-    model = glm::rotate(model, glm::radians(rotation.z), { 0.0f, 0.0f, 1.0f, });
-    model = glm::scale(model, scale);
+    model = glm::translate(model, Position);
+    model = glm::rotate(model, glm::radians(Rotation.x), { 1.0f, 0.0f, 0.0f, });
+    model = glm::rotate(model, glm::radians(Rotation.y), { 0.0f, 1.0f, 0.0f, });
+    model = glm::rotate(model, glm::radians(Rotation.z), { 0.0f, 0.0f, 1.0f, });
+    model = glm::scale(model, Scale);
 
     return model;
 }
 
-static auto ComposeModelMatrix(const glm::vec3& translation, const glm::vec3& scale) noexcept
+const std::shared_ptr<Shader>& Renderer3D::GetFlatShader() const noexcept
 {
-    auto model{ glm::identity<glm::mat4>() };
-    model = glm::translate(model, translation);
-    model = glm::scale(model, scale);
-
-    return model;
+    return m_Storage->FlatShader;
 }
 
-struct RendererData
+std::size_t Renderer3D::GetPrimitivesRendered() const noexcept
 {
-    std::shared_ptr<VertexArray> PlaneVArray;
-    std::shared_ptr<Texture2D> FlatTexture;
-    std::shared_ptr<Shader> FlatShader;
-
-    std::size_t TrianglesCount{ 0u };
-    std::size_t TrianglesCountTemp{ 0u };
-};
-
-// static RendererData* s_RendererData{ nullptr };
-static std::unique_ptr<RendererData> s_RendererData{ nullptr };
-
-const std::shared_ptr<Shader>& Renderer2D::GetFlatShader() noexcept
-{
-    return s_RendererData->FlatShader;
+    return m_Storage->PrimitivesCount;
 }
 
-std::size_t Renderer2D::GetTriangleCount() noexcept
+bool Renderer3D::OnInitialization() noexcept
 {
-    return s_RendererData->TrianglesCount;
-}
-
-bool Renderer2D::Initialize()
-{
-    if (s_RendererData)
+    if (m_Storage.get())
     {
-        // spdlog::critical("[Renderer2D] Failed to initialize Renderer2D!");
-        // return false;
-
-        spdlog::info("[Renderer2D] Renderer is already initialized!");
+        spdlog::warn("The current instance of a Renderer3D is already initialized!");
         return true;
     }
 
-    // s_RendererData = new RendererData{};
-    s_RendererData = std::make_unique<RendererData>();
+    m_Storage = std::make_unique<Renderer3DStorage>();
 
-    // It should probably stay how it is, maybe the time will come...
-    const float defaultZCoordinate{ 0.0f };
-
-    const std::array<RendererVertex, 4u> rectangleVertices = { {
-        // position                               texcoord
-        { {  0.5f,  0.5f, defaultZCoordinate, }, { 1.0f, 1.0f, }, }, // right top
-        { {  0.5f, -0.5f, defaultZCoordinate, }, { 1.0f, 0.0f, }, }, // right bottom
-        { { -0.5f, -0.5f, defaultZCoordinate, }, { 0.0f, 0.0f, }, }, // left  bottom
-        { { -0.5f,  0.5f, defaultZCoordinate, }, { 0.0f, 1.0f, }, }, // left  top
+    const std::array<::Renderer::Renderer3D::Vertex, 4u> rectangleVertices = { {
+        // position                 normal                  texcoord
+        { {  0.5f,  0.5f, 0.0f, }, { 0.0f, 0.0f, -1.0f, }, { 1.0f, 1.0f, }, }, // right top
+        { {  0.5f, -0.5f, 0.0f, }, { 0.0f, 0.0f, -1.0f, }, { 1.0f, 0.0f, }, }, // right bottom
+        { { -0.5f, -0.5f, 0.0f, }, { 0.0f, 0.0f, -1.0f, }, { 0.0f, 0.0f, }, }, // left  bottom
+        { { -0.5f,  0.5f, 0.0f, }, { 0.0f, 0.0f, -1.0f, }, { 0.0f, 1.0f, }, }, // left  top
     } };
 
     // Represent indices as an array of triangles, not individual vertices.
@@ -84,9 +58,10 @@ bool Renderer2D::Initialize()
     } };
 
     auto vertexBuffer{ AllocateResource<VertexBuffer>({
-        .Data   = rectangleVertices.data(),
-        .Size   = rectangleVertices.size() * sizeof(decltype(rectangleVertices)::value_type),
-        .Layout = decltype(rectangleVertices)::value_type::c_Layout,
+        .Data     = rectangleVertices.data(),
+        .DataSize = rectangleVertices.size(),
+        .VertSize = sizeof(decltype(rectangleVertices)::value_type),
+        .Layout   = decltype(rectangleVertices)::value_type::c_Layout,
     }) };
     if (!vertexBuffer->OnInitialize()) return false;
 
@@ -96,89 +71,121 @@ bool Renderer2D::Initialize()
     }) };
     if (!indexBuffer->OnInitialize()) return false;
 
-    s_RendererData->PlaneVArray = AllocateResource<VertexArray>({
+    m_Storage->PlaneVArray = AllocateResource<VertexArray>({
         .VertexBufferPtr = vertexBuffer,
         .IndexBufferPtr  = indexBuffer,
     });
-    if (!s_RendererData->PlaneVArray->OnInitialize()) return false;
+    if (!m_Storage->PlaneVArray->OnInitialize()) return false;
 
-    s_RendererData->FlatTexture = AllocateResource<Texture2D>({
+    m_Storage->FlatTexture = AllocateResource<Texture2D>({
+        .Size = { 1u, 1u, },
+    });
+    if (!m_Storage->FlatTexture->OnInitialize()) return false;
+
+    m_Storage->CubeTexture = AllocateResource<Texture2D>({
+        .Filtering = TextureFiltering::Nearest,
         .Filepath  = "assets/textures/container.jpg",
     });
-    if (!s_RendererData->FlatTexture->OnInitialize()) return false;
+    if (!m_Storage->CubeTexture->OnInitialize()) return false;
 
-    s_RendererData->FlatShader = AllocateResource<Shader>({
+    m_Storage->FlatShader = AllocateResource<Shader>({
         .Sources = {
             { ShaderType::Vertex,   { "assets/shaders/vertex.glsl",   }, },
             { ShaderType::Fragment, { "assets/shaders/fragment.glsl", }, },
         },
     });
-    if (!s_RendererData->FlatShader->Compile()) return false;
-    if (!s_RendererData->FlatShader->Link())    return false;
+    if (!m_Storage->FlatShader->Compile()) return false;
+    if (!m_Storage->FlatShader->Link())    return false;
 
     return true;
 }
 
-void Renderer2D::Shutdown()
+void Renderer3D::OnShutdown() noexcept
 {
-    // delete s_RendererData;
-    s_RendererData.~unique_ptr();
+    m_Storage.~unique_ptr();
 }
 
-void Renderer2D::BeginScene(const Camera* camera)
+void Renderer3D::BeginScene(Camera* camera) noexcept
 {
-    s_RendererData->TrianglesCountTemp = 0u;
+    m_Storage->PrimitivesCountTemp = 0u;
 
-    s_RendererData->FlatShader->Bind();
-    s_RendererData->FlatShader->SetUniform("u_ViewMatrix", camera->GetViewMatrix());
-    s_RendererData->FlatShader->SetUniform("u_ProjectionMatrix", camera->GetProjectionMatrix());
+    m_Storage->FlatShader->Bind();
+    m_Storage->FlatShader->SetUniform("u_ViewMatrix", camera->GetViewMatrix());
+    m_Storage->FlatShader->SetUniform("u_ProjectionMatrix", camera->GetProjectionMatrix());
+    m_Storage->FlatShader->SetUniform("u_ViewPosition", camera->GetPosition());
 }
 
-void Renderer2D::EndScene()
+void Renderer3D::EndScene() noexcept
 {
-    s_RendererData->TrianglesCount = s_RendererData->TrianglesCountTemp;
+    m_Storage->PrimitivesCount = m_Storage->PrimitivesCountTemp;
 }
 
-void Renderer2D::DrawPlane(const glm::vec3& size, const glm::vec3& position, const glm::vec3& color)
+void Renderer3D::DrawPlane(const Translation& translation)
 {
-    const auto model{ ComposeModelMatrix(position, size) };
+    m_Storage->FlatShader->SetUniform("u_ModelMatrix", translation.ComposeModelMatrix());
+    m_Storage->FlatShader->SetUniform("u_Light.Color", glm::vec3(1.0f));
 
-    s_RendererData->FlatShader->SetUniform("u_ModelMatrix", model);
-    s_RendererData->FlatShader->SetUniform("u_Color", color);
+    m_Storage->FlatShader->SetUniform("u_Material.Ambient",  glm::vec3{ 0.1f, 0.1f, 0.1f, });
+    m_Storage->FlatShader->SetUniform("u_Material.Diffuse",  glm::vec3{ 1.0f, 1.0f, 1.0f, });
+    m_Storage->FlatShader->SetUniform("u_Material.Specular", glm::vec3{ 0.5f, 0.5f, 0.5f, });
+    m_Storage->FlatShader->SetUniform("u_Material.Shininess", 32.0f);
 
-    s_RendererData->PlaneVArray->Bind();
-    RenderCommand::DrawIndexed(s_RendererData->PlaneVArray, s_RendererData->FlatTexture);
+    RenderCommand::DrawIndexed(m_Storage->PlaneVArray, m_Storage->CubeTexture);
 
-    s_RendererData->TrianglesCountTemp +=
-        s_RendererData->PlaneVArray->GetIndexBuffer()->GetCount() / 3u;
+    m_Storage->PrimitivesCountTemp +=
+        m_Storage->PlaneVArray->GetIndexBuffer()->GetCount() / 3u;
 }
 
-void Renderer2D::DrawPlane(const glm::vec3& size, const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& color)
+void Renderer3D::DrawCube(const Translation& translation, const glm::vec3& color)
 {
-    const auto model{ ComposeModelMatrix(position, rotation, size) };
-
-    s_RendererData->FlatShader->SetUniform("u_ModelMatrix", model);
-    s_RendererData->FlatShader->SetUniform("u_Color", color);
-
-    s_RendererData->PlaneVArray->Bind();
-    RenderCommand::DrawIndexed(s_RendererData->PlaneVArray, s_RendererData->FlatTexture);
-
-    s_RendererData->TrianglesCountTemp +=
-        s_RendererData->PlaneVArray->GetIndexBuffer()->GetCount() / 3u;
 }
 
-void Renderer2D::DrawArrays(const std::shared_ptr<VertexArray>& vertexArray, std::size_t count)
+void Renderer3D::SetLightPosition(const glm::vec3& position)
 {
-    const auto model{ ComposeModelMatrix({ 0.0f, -0.5f, 0.0f, }, glm::vec3(0.4f)) };
+    m_Storage->FlatShader->SetUniform("u_Light.Position", position);
+}
 
-    s_RendererData->FlatShader->SetUniform("u_ModelMatrix", model);
-    s_RendererData->FlatShader->SetUniform("u_Color", glm::vec3(1.0f));
+void Renderer3D::DrawArrays(
+    const std::shared_ptr<VertexArray>& vertexArray,
+    const std::shared_ptr<Texture2D>& diffuse,
+    const std::shared_ptr<Texture2D>& specular,
+    const std::shared_ptr<Texture2D>& emission,
+    bool wireframe)
+{
+    Translation translation{ .Scale = glm::vec3(0.1f), };
+
+    m_Storage->FlatShader->SetUniform("u_ModelMatrix", translation.ComposeModelMatrix());
+    m_Storage->FlatShader->SetUniform("u_Light.Color", glm::vec3(1.0f));
+
+    m_Storage->FlatShader->SetUniform("u_Material.Ambient",  glm::vec3{ 0.1f, 0.1f, 0.1f, });
+    m_Storage->FlatShader->SetUniform("u_Material.Diffuse",  glm::vec3{ 1.0f, 1.0f, 1.0f, });
+    m_Storage->FlatShader->SetUniform("u_Material.Specular", glm::vec3{ 0.5f, 0.5f, 0.5f, });
+    m_Storage->FlatShader->SetUniform("u_Material.Shininess", 32.0f);
 
     glActiveTexture(GL_TEXTURE0);
-    s_RendererData->FlatTexture->Bind();
+    diffuse->Bind();
+    m_Storage->FlatShader->SetUniform<int>("u_DiffuseTexture", GL_TEXTURE0 - GL_TEXTURE0);
 
-    vertexArray->Bind();
-    RenderCommand::DrawArrays(vertexArray, count);
+    glActiveTexture(GL_TEXTURE1);
+    specular->Bind();
+    m_Storage->FlatShader->SetUniform<int>("u_SpecularTexture", GL_TEXTURE1 - GL_TEXTURE0);
+
+    glActiveTexture(GL_TEXTURE2);
+    emission->Bind();
+    m_Storage->FlatShader->SetUniform<int>("u_EmissionTexture", GL_TEXTURE2 - GL_TEXTURE0);
+
+    RenderCommand::DrawArrays(vertexArray);
+
+    if (wireframe)
+    {
+        glLineWidth(3.0f);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        
+        m_Storage->FlatShader->SetUniform("u_Color", glm::vec3(0.0f));
+        RenderCommand::DrawArrays(vertexArray);
+
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    }
 }
 
 NAMESPACE_END(Renderer)

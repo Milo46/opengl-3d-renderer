@@ -5,6 +5,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <map>
 
 static std::tuple<std::uint32_t, std::uint32_t, std::uint32_t> SplitFace(const std::string& face)
 {
@@ -14,17 +15,17 @@ static std::tuple<std::uint32_t, std::uint32_t, std::uint32_t> SplitFace(const s
     const auto secondDelimeter{ face.find(delimeter, firstDelimeter + 1u) };
 
     const auto substr1{ face.substr(0u, firstDelimeter) };
-    const auto substr2{ face.substr(firstDelimeter + 1u, secondDelimeter - firstDelimeter - 1u) };
-    const auto substr3{ face.substr(secondDelimeter + 1u, face.size() - secondDelimeter) };
+    const auto substr2{ firstDelimeter == std::string::npos ? "" : face.substr(firstDelimeter + 1u, secondDelimeter - firstDelimeter - 1u) };
+    const auto substr3{ secondDelimeter == std::string::npos ? "" : face.substr(secondDelimeter + 1u, face.size() - secondDelimeter) };
 
     return std::make_tuple(
-        std::stoi(substr1.empty() ? "-1" : substr1),
-        std::stoi(substr2.empty() ? "-1" : substr2),
-        std::stoi(substr3.empty() ? "-1" : substr3)
+        static_cast<std::uint32_t>(std::stoi(substr1.empty() ? "-1" : substr1)),
+        static_cast<std::uint32_t>(std::stoi(substr2.empty() ? "-1" : substr2)),
+        static_cast<std::uint32_t>(std::stoi(substr3.empty() ? "-1" : substr3))
     );
 }
 
-std::vector<OBJImportData> LoadOBJFile(const std::string& filepath)
+std::vector<OBJImportData> LoadOBJFile(const std::string& filepath, FaceType faceType)
 {
     std::ifstream file{ filepath };
     if (!file.is_open())
@@ -64,19 +65,44 @@ std::vector<OBJImportData> LoadOBJFile(const std::string& filepath)
         }
         else if (lineHeader == "f")
         {
-            std::string faces[3u]{};
-            file >> faces[0u] >> faces[1u] >> faces[2u];
-
-            for (std::size_t i = 0u; i < 3u; ++i)
+            if (faceType == FaceType::Triangle)
             {
-                const auto invalidValue{ static_cast<std::uint32_t>(-1) };
-                const auto [vi, ti, ni]{ SplitFace(faces[i]) };
+                std::string faces[3u]{};
+                file >> faces[0u] >> faces[1u] >> faces[2u];
 
-                retval.push_back({
-                    vi == invalidValue ? glm::vec3{} : vertices.at(vi - 1u),
-                    ni == invalidValue ? glm::vec3{} : vertices.at(ni - 1u),
-                    ti == invalidValue ? glm::vec2{} : vertices.at(ti - 1u)
-                });
+                for (std::size_t i = 0u; i < 3u; ++i)
+                {
+                    constexpr auto invalidValue{ static_cast<std::uint32_t>(-1) };
+                    const auto [vi, ti, ni]{ SplitFace(faces[i]) };
+
+                    retval.push_back({
+                        vi == invalidValue ? glm::vec3{} : vertices.at(vi - 1u),
+                        ni == invalidValue ? glm::vec3{} : normals.at(ni - 1u),
+                        ti == invalidValue ? glm::vec2{} : texCoords.at(ti - 1u)
+                    });
+                }
+            }
+            else if (faceType == FaceType::Quad)
+            {
+                OBJImportData quad[4u]{};
+
+                std::string faces[4u]{};
+                file >> faces[0u] >> faces[1u] >> faces[2u] >> faces[3u];
+
+                for (std::size_t i = 0u; i < 4u; ++i)
+                {
+                    constexpr auto invalidValue{ static_cast<std::uint32_t>(-1) };
+                    const auto [vi, ti, ni]{ SplitFace(faces[i]) };
+
+                    quad[i] = {
+                        vi == invalidValue ? glm::vec3{} : vertices.at(vi - 1u),
+                        ni == invalidValue ? glm::vec3{} : normals.at(ni - 1u),
+                        ti == invalidValue ? glm::vec2{} : texCoords.at(ti - 1u)
+                    };
+                }
+
+                retval.push_back(quad[2u]); retval.push_back(quad[3u]); retval.push_back(quad[1u]);
+                retval.push_back(quad[0u]); retval.push_back(quad[1u]); retval.push_back(quad[3u]);
             }
         }
     }
@@ -84,44 +110,49 @@ std::vector<OBJImportData> LoadOBJFile(const std::string& filepath)
     return retval;
 }
 
-void LoadOBJ(const char* filename, std::vector<glm::vec3>& vertices, std::vector<glm::vec3>& normals, std::vector<unsigned int>& elements)
-{
-    std::ifstream in(filename, std::ios::in);
-    if (!in)
-    {
-        std::cerr << "Cannot open " << filename << std::endl;
-        return;
-    }
+// std::vector<OBJVertexData> LoadObjectModel(const std::string& filepath)
+// {
+//     std::ifstream file{ filepath };
+//     if (!file.is_open())
+//     {
+//         spdlog::error("Failed to load the object model: {}", filepath);
+//         return {};
+//     }
 
-    std::string line;
-    while (getline(in, line))
-    {
-        if (line.substr(0,2) == "v ")
-        {
-            std::istringstream s(line.substr(2));
-            glm::vec3 v; s >> v.x; s >> v.y; s >> v.z;
-            vertices.push_back(v);
-        }
-        else if (line.substr(0,2) == "f ")
-        {
-            std::istringstream s(line.substr(2));
-            unsigned int a,b,c;
-            s >> a; s >> b; s >> c;
-            a--; b--; c--;
-           elements.push_back(a); elements.push_back(b); elements.push_back(c);
-        }
-        /* anything else is ignored */
-    }
+//     std::vector<OBJVertexData> retval{};
 
-    normals.resize(vertices.size(), glm::vec3(0.0, 0.0, 0.0));
-    for (int i = 0; i < elements.size(); i+=3)
-    {
-        unsigned int ia = elements[i];
-        unsigned int ib = elements[i+1];
-        unsigned int ic = elements[i+2];
-        glm::vec3 normal = glm::normalize(glm::cross(
-        glm::vec3(vertices[ib]) - glm::vec3(vertices[ia]),
-        glm::vec3(vertices[ic]) - glm::vec3(vertices[ia])));
-        normals[ia] = normals[ib] = normals[ic] = normal;
-    }
-}
+//     std::vector<decltype(OBJVertexData::Position)> vertices{};
+//     std::vector<decltype(OBJVertexData::Normal)> normals{};
+//     std::vector<decltype(OBJVertexData::Texcoord)> texcoords{};
+
+//     while (!file.eof())
+//     {
+//         std::string lineHeader{};
+//         file >> lineHeader;
+
+//         if (lineHeader == "v")
+//         {
+//             decltype(vertices)::value_type vertex{};
+//             file >> vertex;
+//             vertices.push_back(vertex);
+//         }
+//         else if (lineHeader == "vn")
+//         {
+//             decltype(normals)::value_type normal{};
+//             file >> normal;
+//             normals.push_back(normal);
+//         }
+//         else if (lineHeader == "vt")
+//         {
+//             decltype(texcoords)::value_type texcoord{};
+//             file >> texcoord;
+//             texcoords.push_back(texcoord);
+//         }
+//         else if (lineHeader == "f")
+//         {
+            
+//         }
+//     }
+
+//     return retval;
+// }

@@ -29,7 +29,7 @@ public:
     PerspectiveCamera& SetPosition(const glm::vec3& position) noexcept;
     PerspectiveCamera& SetLookDirection(const glm::vec3& direction) noexcept;
 
-    inline const auto& GetPosition() const noexcept { return m_Position; }
+    virtual inline const glm::vec3& GetPosition() const { return m_Position; }
 
 public:
     void OnUpdate(float aspectRatio);
