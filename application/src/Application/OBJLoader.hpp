@@ -2,11 +2,9 @@
 
 #include <glm/glm.hpp>
 
+#include <functional>
 #include <vector>
 #include <string>
-#include <tuple>
-
-#include "Utility/FileManager.hpp"
 
 enum class FaceType
 {
@@ -14,19 +12,16 @@ enum class FaceType
     Quad,
 };
 
-using OBJImportData = std::tuple<
-    glm::vec3, // position
-    glm::vec3, // normal
-    glm::vec2  // texcoords
->;
+struct OBJVertexData
+{
+    glm::vec3 Position{};
+    glm::vec3 Normal{};
+    glm::vec2 Texcoord{};
+};
 
-std::vector<OBJImportData> LoadOBJFile(const std::string& filepath, FaceType faceType = FaceType::Triangle);
+struct OBJModelData
+{
+    std::vector<OBJVertexData> Data{};
+};
 
-// struct OBJVertexData
-// {
-//     glm::vec3 Position{};
-//     glm::vec3 Normal{};
-//     glm::vec2 Texcoord{};
-// };
-
-// std::vector<OBJVertexData> LoadObjectModel(const std::string& filepath);
+OBJModelData LoadOBJFile(const std::string& filepath, FaceType faceType = FaceType::Triangle);

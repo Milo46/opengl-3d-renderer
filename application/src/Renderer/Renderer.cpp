@@ -23,17 +23,17 @@ glm::mat4 Translation::ComposeModelMatrix() const noexcept
     return model;
 }
 
-const std::shared_ptr<Shader>& Renderer3D::GetFlatShader() const noexcept
+const std::shared_ptr<Shader>& Renderer3DInstance::GetFlatShader() const noexcept
 {
     return m_Storage->FlatShader;
 }
 
-std::size_t Renderer3D::GetPrimitivesRendered() const noexcept
+std::size_t Renderer3DInstance::GetPrimitivesRendered() const noexcept
 {
     return m_Storage->PrimitivesCount;
 }
 
-bool Renderer3D::OnInitialization() noexcept
+bool Renderer3DInstance::OnInitialization() noexcept
 {
     if (m_Storage.get())
     {
@@ -43,7 +43,7 @@ bool Renderer3D::OnInitialization() noexcept
 
     m_Storage = std::make_unique<Renderer3DStorage>();
 
-    const std::array<::Renderer::Renderer3D::Vertex, 4u> rectangleVertices = { {
+    const std::array<::Renderer::Renderer3DInstance::Vertex, 4u> rectangleVertices = { {
         // position                 normal                  texcoord
         { {  0.5f,  0.5f, 0.0f, }, { 0.0f, 0.0f, -1.0f, }, { 1.0f, 1.0f, }, }, // right top
         { {  0.5f, -0.5f, 0.0f, }, { 0.0f, 0.0f, -1.0f, }, { 1.0f, 0.0f, }, }, // right bottom
@@ -100,12 +100,12 @@ bool Renderer3D::OnInitialization() noexcept
     return true;
 }
 
-void Renderer3D::OnShutdown() noexcept
+void Renderer3DInstance::OnShutdown() noexcept
 {
     m_Storage.~unique_ptr();
 }
 
-void Renderer3D::BeginScene(Camera* camera) noexcept
+void Renderer3DInstance::BeginScene(Camera* camera) noexcept
 {
     m_Storage->PrimitivesCountTemp = 0u;
 
@@ -115,15 +115,14 @@ void Renderer3D::BeginScene(Camera* camera) noexcept
     m_Storage->FlatShader->SetUniform("u_ViewPosition", camera->GetPosition());
 }
 
-void Renderer3D::EndScene() noexcept
+void Renderer3DInstance::EndScene() noexcept
 {
     m_Storage->PrimitivesCount = m_Storage->PrimitivesCountTemp;
 }
 
-void Renderer3D::DrawPlane(const Translation& translation)
+void Renderer3DInstance::DrawPlane(const Translation& translation)
 {
     m_Storage->FlatShader->SetUniform("u_ModelMatrix", translation.ComposeModelMatrix());
-    m_Storage->FlatShader->SetUniform("u_Light.Color", glm::vec3(1.0f));
 
     m_Storage->FlatShader->SetUniform("u_Material.Ambient",  glm::vec3{ 0.1f, 0.1f, 0.1f, });
     m_Storage->FlatShader->SetUniform("u_Material.Diffuse",  glm::vec3{ 1.0f, 1.0f, 1.0f, });
@@ -136,16 +135,17 @@ void Renderer3D::DrawPlane(const Translation& translation)
         m_Storage->PlaneVArray->GetIndexBuffer()->GetCount() / 3u;
 }
 
-void Renderer3D::DrawCube(const Translation& translation, const glm::vec3& color)
+void Renderer3DInstance::DrawCube(const Translation& translation, const glm::vec3& color)
 {
 }
 
-void Renderer3D::SetLightPosition(const glm::vec3& position)
+void Renderer3DInstance::SetPointLight(const glm::vec3& position, const glm::vec3& color)
 {
     m_Storage->FlatShader->SetUniform("u_Light.Position", position);
+    m_Storage->FlatShader->SetUniform("u_Light.Color", color);
 }
 
-void Renderer3D::DrawArrays(
+void Renderer3DInstance::DrawArrays(
     const std::shared_ptr<VertexArray>& vertexArray,
     const std::shared_ptr<Texture2D>& diffuse,
     const std::shared_ptr<Texture2D>& specular,
@@ -155,7 +155,6 @@ void Renderer3D::DrawArrays(
     Translation translation{ .Scale = glm::vec3(0.1f), };
 
     m_Storage->FlatShader->SetUniform("u_ModelMatrix", translation.ComposeModelMatrix());
-    m_Storage->FlatShader->SetUniform("u_Light.Color", glm::vec3(1.0f));
 
     m_Storage->FlatShader->SetUniform("u_Material.Ambient",  glm::vec3{ 0.1f, 0.1f, 0.1f, });
     m_Storage->FlatShader->SetUniform("u_Material.Diffuse",  glm::vec3{ 1.0f, 1.0f, 1.0f, });

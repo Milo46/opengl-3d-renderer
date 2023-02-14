@@ -27,6 +27,7 @@ add_executable(${PROJECT_NAME}
 
     src/Application/Application.cpp
     src/Application/OBJLoader.cpp
+    src/Application/Scene.cpp
 
     src/Core/EntryPoint.cpp
 )

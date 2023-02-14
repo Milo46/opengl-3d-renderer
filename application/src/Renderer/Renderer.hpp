@@ -13,8 +13,9 @@
 
 NAMESPACE_BEGIN(Renderer)
 
-struct Renderer
+class RendererInstance
 {
+public:
     virtual bool OnInitialization() noexcept = 0;
     virtual void OnShutdown() noexcept = 0;
 
@@ -33,7 +34,7 @@ struct Translation
 
 struct Renderer3DStorage;
 
-class Renderer3D : public Renderer
+class Renderer3DInstance : public RendererInstance
 {
 public: // experimental
     const std::shared_ptr<Shader>& GetFlatShader() const noexcept;
@@ -66,7 +67,7 @@ public:
     void DrawPlane(const Translation& translation);
     void DrawCube(const Translation& translation, const glm::vec3& color = glm::vec3(1.0f));
 
-    void SetLightPosition(const glm::vec3& position);
+    void SetPointLight(const glm::vec3& position, const glm::vec3& color);
 
     void DrawArrays(
         const std::shared_ptr<VertexArray>& vertexArray,

@@ -86,6 +86,29 @@ struct Timestamp // or Timepoint? Help.
 //     const float m_OrbitRadius{ 2.0f };
 // };
 
+class Scene
+{
+public:
+    virtual bool OnInitialization() { return true; }
+
+    virtual void OnUpdate(const Timestamp& timestamp) noexcept = 0;
+    virtual void OnRender() noexcept = 0;
+
+    virtual void OnImGuiRender(ImGuiIO& io, const Timestamp& timestamp) noexcept {};
+
+public:
+    virtual ~Scene() = default;
+
+protected:
+    inline Scene(std::unique_ptr<Window>& windowRef)
+        : m_WindowRef{ windowRef } {}
+
+    inline std::unique_ptr<Window>& GetWindow() noexcept { return m_WindowRef; }
+
+private:
+    std::unique_ptr<Window>& m_WindowRef;
+};
+
 struct ApplicationProps
 {
     std::string_view Name;
@@ -113,25 +136,12 @@ private:
 private:
     std::unique_ptr<Window> m_Window;
     std::unique_ptr<ImGuiBuildContext> m_ImGuiContext;
-    std::unique_ptr<Renderer::Renderer3D> m_RendererContext;
     Timestamp m_Timestamp{};
-
-    Renderer::PerspectiveCamera m_Camera;
-    float m_UpdateAspectRatio{ 1.0f };
-
-    glm::vec2 m_ViewportPosition{};
-    glm::vec2 m_ViewportSize{};
 
     bool m_WireframeMode{ true };
 
     std::shared_ptr<Renderer::Framebuffer> m_Framebuffer{};
-
-    std::shared_ptr<Renderer::VertexArray> m_TeapotVA{};
-    std::shared_ptr<Renderer::Texture2D> m_DiffuseMap{};
-    std::shared_ptr<Renderer::Texture2D> m_SpecularMap{};
-    std::shared_ptr<Renderer::Texture2D> m_EmissionMap{};
-
-    Renderer::ShaderDataExtractor m_ShaderData{};
+    std::shared_ptr<Scene> m_ActiveScene{};
 };
 
 std::unique_ptr<Application> CreateApplication() noexcept;

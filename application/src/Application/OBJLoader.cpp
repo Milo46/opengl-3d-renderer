@@ -25,7 +25,7 @@ static std::tuple<std::uint32_t, std::uint32_t, std::uint32_t> SplitFace(const s
     );
 }
 
-std::vector<OBJImportData> LoadOBJFile(const std::string& filepath, FaceType faceType)
+OBJModelData LoadOBJFile(const std::string& filepath, FaceType faceType)
 {
     std::ifstream file{ filepath };
     if (!file.is_open())
@@ -38,7 +38,7 @@ std::vector<OBJImportData> LoadOBJFile(const std::string& filepath, FaceType fac
     std::vector<glm::vec3> normals{};
     std::vector<glm::vec2> texCoords{};
 
-    std::vector<OBJImportData> retval{};
+    decltype(OBJModelData::Data) data{};
 
     while (!file.eof())
     {
@@ -75,7 +75,7 @@ std::vector<OBJImportData> LoadOBJFile(const std::string& filepath, FaceType fac
                     constexpr auto invalidValue{ static_cast<std::uint32_t>(-1) };
                     const auto [vi, ti, ni]{ SplitFace(faces[i]) };
 
-                    retval.push_back({
+                    data.push_back({
                         vi == invalidValue ? glm::vec3{} : vertices.at(vi - 1u),
                         ni == invalidValue ? glm::vec3{} : normals.at(ni - 1u),
                         ti == invalidValue ? glm::vec2{} : texCoords.at(ti - 1u)
@@ -84,7 +84,7 @@ std::vector<OBJImportData> LoadOBJFile(const std::string& filepath, FaceType fac
             }
             else if (faceType == FaceType::Quad)
             {
-                OBJImportData quad[4u]{};
+                OBJVertexData quad[4u]{};
 
                 std::string faces[4u]{};
                 file >> faces[0u] >> faces[1u] >> faces[2u] >> faces[3u];
@@ -101,58 +101,11 @@ std::vector<OBJImportData> LoadOBJFile(const std::string& filepath, FaceType fac
                     };
                 }
 
-                retval.push_back(quad[2u]); retval.push_back(quad[3u]); retval.push_back(quad[1u]);
-                retval.push_back(quad[0u]); retval.push_back(quad[1u]); retval.push_back(quad[3u]);
+                data.push_back(quad[2u]); data.push_back(quad[3u]); data.push_back(quad[1u]);
+                data.push_back(quad[0u]); data.push_back(quad[1u]); data.push_back(quad[3u]);
             }
         }
     }
 
-    return retval;
+    return { data };
 }
-
-// std::vector<OBJVertexData> LoadObjectModel(const std::string& filepath)
-// {
-//     std::ifstream file{ filepath };
-//     if (!file.is_open())
-//     {
-//         spdlog::error("Failed to load the object model: {}", filepath);
-//         return {};
-//     }
-
-//     std::vector<OBJVertexData> retval{};
-
-//     std::vector<decltype(OBJVertexData::Position)> vertices{};
-//     std::vector<decltype(OBJVertexData::Normal)> normals{};
-//     std::vector<decltype(OBJVertexData::Texcoord)> texcoords{};
-
-//     while (!file.eof())
-//     {
-//         std::string lineHeader{};
-//         file >> lineHeader;
-
-//         if (lineHeader == "v")
-//         {
-//             decltype(vertices)::value_type vertex{};
-//             file >> vertex;
-//             vertices.push_back(vertex);
-//         }
-//         else if (lineHeader == "vn")
-//         {
-//             decltype(normals)::value_type normal{};
-//             file >> normal;
-//             normals.push_back(normal);
-//         }
-//         else if (lineHeader == "vt")
-//         {
-//             decltype(texcoords)::value_type texcoord{};
-//             file >> texcoord;
-//             texcoords.push_back(texcoord);
-//         }
-//         else if (lineHeader == "f")
-//         {
-            
-//         }
-//     }
-
-//     return retval;
-// }
