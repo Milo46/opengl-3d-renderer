@@ -3,7 +3,6 @@
 #include "Window/Window.hpp"
 #include <imgui.h>
 
-// Temporary name.
 class ImGuiBuildContext
 {
 public:

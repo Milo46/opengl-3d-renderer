@@ -1,11 +1,8 @@
 #pragma once
 
-#include "Renderer/RendererCore.hpp"
-#include "Renderer/Camera/Camera.hpp"
+#include "Camera.hpp"
 
-#include "Window/Window.hpp"
-
-RENDERER_CODE_BEGIN
+NAMESPACE_BEGIN(Renderer)
 
 struct PerspectiveProjection
 {
@@ -27,23 +24,22 @@ public:
     inline static const float c_Zoom{ 45.0f };
 
 public:
-    explicit PerspectiveCamera(const PerspectiveProjection& props);
+    explicit PerspectiveCamera(const PerspectiveProjection& projection = {});
 
-    void OnUpdate(const std::unique_ptr<Window>& window);
+    PerspectiveCamera& SetPosition(const glm::vec3& position) noexcept;
+    PerspectiveCamera& SetLookDirection(const glm::vec3& direction) noexcept;
+
+    virtual inline const glm::vec3& GetPosition() const { return m_Position; }
+
+public:
     void OnUpdate(float aspectRatio);
 
 public:
     virtual const glm::mat4& GetViewMatrix() const override;
     virtual const glm::mat4& GetProjectionMatrix() const override;
 
-    const glm::vec3& GetPosition() const;
-
-public:
-    PerspectiveCamera& SetPosition(const glm::vec3& position);
-    PerspectiveCamera& SetLookDirection(const glm::vec3& direction);
-
 private:
-    void UpdateData();
+    void RecalculateViewMatrix();
 
 private:
     glm::mat4 m_ViewMatrix{};
@@ -64,4 +60,4 @@ private:
     float m_Zoom { c_Zoom  };
 };
 
-RENDERER_CODE_END
+NAMESPACE_END(Renderer)

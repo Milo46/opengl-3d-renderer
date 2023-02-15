@@ -4,14 +4,14 @@
 
 #include <glm/glm.hpp>
 
-RENDERER_CODE_BEGIN
+NAMESPACE_BEGIN(Renderer)
 
 struct Camera
 {
-    Camera() = default;
-
     virtual const glm::mat4& GetViewMatrix() const = 0;
     virtual const glm::mat4& GetProjectionMatrix() const = 0;
+
+    virtual const glm::vec3& GetPosition() const = 0;
 };
 
-RENDERER_CODE_END
+NAMESPACE_END(Renderer)

@@ -1,55 +1,20 @@
 #pragma once
 
+#include <stdint.h>
 #include <memory>
 
-#define RENDERER_CODE_BEGIN namespace Renderer {
-#define RENDERER_CODE_END   }
+#define NAMESPACE_BEGIN(_Name) namespace _Name {
+#define NAMESPACE_END(_Name)   }
 
-/**
- * Clean this up, please.
- */
-namespace Renderer
-{
-    // Unfortunately I cannot include glad here ;(
-    // So I have to believe that glad types are correct.
-    using RendererID       = unsigned int;  // GLuint
-    using RendererEnum     = unsigned int;  // GLenum
-    using RendererSizei    = int;           // GLsizei
-    using RendererSizeiptr = long long int; // GLsizeiptr
+NAMESPACE_BEGIN(Renderer)
 
-    using IndexType = unsigned int;
+using RendererID   = uint32_t;
+using RendererEnum = uint32_t;
 
-    template<typename _Ty>
-    constexpr inline auto GetArithmetic(const _Ty& value) noexcept
-    {
-        static_assert(std::is_arithmetic_v<_Ty>);
-        return value;
-    }
+template<typename _Ty> constexpr inline auto c_EmptyValue  { static_cast<_Ty>( 0) };
+template<typename _Ty> constexpr inline auto c_InvalidValue{ static_cast<_Ty>(-1) };
 
-    template<typename _Ty> constexpr inline auto c_EmptyValue{ GetArithmetic<_Ty>(0) };
-    template<typename _Ty> constexpr inline auto c_InvalidValue{ static_cast<_Ty>(-1) };
-
-    class RendererElement
-    {
-    public:
-        virtual ~RendererElement() = default;
-        const RendererID GetHandle() const noexcept;
-
-    protected:
-        explicit RendererElement() = default;
-
-    protected:
-        RendererID m_RendererID{ c_EmptyValue<RendererID> };
-    };
-
-    template<typename _DefaultProps>
-    struct Creatable { using DefaultPropsType = _DefaultProps; };
-
-    template<typename _ReturnType, typename _PropsType = typename _ReturnType::DefaultPropsType>
-    inline auto Create(const _PropsType& props) noexcept -> std::shared_ptr<_ReturnType>;
-}
-
-namespace Renderer::EnumHelpers
+namespace EnumHelpers
 {
     using DefaultEnumIndexType = std::size_t;
 
@@ -95,6 +60,8 @@ namespace Renderer::EnumHelpers
         return IsEnumClassValid(value) ? map.at(ToIndex(value)) : onInvalidValue;
     }
 }
+
+NAMESPACE_END(Renderer)
 
 #define DECLARE_CREATABLE(_ClassName) \
     using DefaultPropsType = _ClassName##Props

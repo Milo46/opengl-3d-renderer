@@ -2,12 +2,9 @@
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-
 #include <spdlog/spdlog.h>
 
-#include <spdlog/spdlog.h>
-
-RENDERER_CODE_BEGIN
+NAMESPACE_BEGIN(Renderer)
 
 /**
  * Source: https://www.khronos.org/opengl/wiki/OpenGL_Error
@@ -20,7 +17,7 @@ void GLAPIENTRY GLADErrorCallback(GLenum source, GLenum type, GLuint id, GLenum 
 GraphicsContext::GraphicsContext(GLFWwindow* window)
     : m_WindowHandle{ window } {}
 
-bool GraphicsContext::Initialize()
+bool GraphicsContext::Initialize() noexcept
 {
     if (!m_WindowHandle)
     {
@@ -41,6 +38,10 @@ bool GraphicsContext::Initialize()
     glEnable(GL_DEPTH_TEST);
     glfwSwapInterval(1);
 
+    // glEnable(GL_CULL_FACE);
+    // glCullFace(GL_FRONT);
+    // glFrontFace(GL_CW);
+
     spdlog::info("OpenGL info:");
     spdlog::info("\tVendor: {}", glGetString(GL_VENDOR));
     spdlog::info("\tRenderer: {}", glGetString(GL_RENDERER));
@@ -54,10 +55,10 @@ void GraphicsContext::SwapBuffers()
     glfwSwapBuffers(m_WindowHandle);
 }
 
-bool GraphicsContext::SetVSync(const bool flag)
+bool GraphicsContext::SetVSync(bool flag)
 {
     glfwSwapInterval(flag);
     return flag;
 }
 
-RENDERER_CODE_END
+NAMESPACE_END(Renderer)
