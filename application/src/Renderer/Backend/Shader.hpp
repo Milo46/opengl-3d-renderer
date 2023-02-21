@@ -27,6 +27,16 @@ enum class ShaderType
     EnumEnd,
 };
 
+// enum class ShaderType : RendererEnum
+// {
+//     Vertex      = 0x8B31,
+//     Fragment    = 0x8B30,
+//     Geometry    = 0x8DD9,
+//     Compute     = 0x91B9,
+//     TessControl = 0x8E88,
+//     Evaluation  = 0x8E87,
+// };
+
 struct ShaderProps
 {
     std::unordered_map<ShaderType, FileManager> Sources{};

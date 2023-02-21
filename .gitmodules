@@ -17,3 +17,6 @@
 [submodule "vendor/entt"]
 	path = vendor/entt
 	url = https://github.com/skypjack/entt
+[submodule "vendor/rocket"]
+	path = vendor/rocket
+	url = https://github.com/tripleslash/rocket

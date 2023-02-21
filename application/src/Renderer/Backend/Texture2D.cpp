@@ -12,35 +12,6 @@
 
 NAMESPACE_BEGIN(Renderer)
 
-namespace Internal
-{
-    template<typename _EnumClass>
-    constexpr static inline auto EnumIndex(const _EnumClass value) noexcept { return static_cast<std::size_t>(value) - 1u; }
-
-    template<typename _EnumClass>
-    constexpr static inline auto IsEnumValid(const _EnumClass value) noexcept { return _EnumClass::None < value && _EnumClass::EnumEnd < value; }
-
-    constexpr auto c_InvalidTextureWrapping{ static_cast<RendererEnum>(-1) };
-    constexpr static inline auto GetGLTextureWrapping(const TextureWrapping wrapping) noexcept
-    {
-        std::array<RendererEnum, static_cast<std::size_t>(TextureWrapping::EnumEnd)> data{
-            GL_REPEAT, GL_MIRRORED_REPEAT, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_BORDER,
-        };
-
-        return IsEnumValid(wrapping) ? data.at(EnumIndex(wrapping)) : c_InvalidTextureWrapping;
-    }
-
-    constexpr auto c_InvalidTextureFiltering{ static_cast<RendererEnum>(-1) };
-    constexpr static inline auto GetGLTextureFiltering(const TextureFiltering filtering) noexcept
-    {
-        std::array<RendererEnum, static_cast<std::size_t>(TextureFiltering::EnumEnd)> data{
-            GL_NEAREST, GL_LINEAR,
-        };
-
-        return IsEnumValid(filtering) ? data.at(EnumIndex(filtering)) : c_InvalidTextureFiltering;
-    }
-}
-
 const static auto c_InternalFormat{ GL_RGBA8 };
 const static auto c_DataFormat    { GL_RGBA  };
 
@@ -61,11 +32,11 @@ bool Texture2D::OnInitialize() noexcept
     glCreateTextures(GL_TEXTURE_2D, 1, &m_RendererID);
     glBindTexture(GL_TEXTURE_2D, { m_RendererID });
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, { static_cast<GLint>(Internal::GetGLTextureWrapping(m_Wrapping)) });
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, { static_cast<GLint>(Internal::GetGLTextureWrapping(m_Wrapping)) });
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, { static_cast<GLint>(m_Wrapping) });
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, { static_cast<GLint>(m_Wrapping) });
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, { static_cast<GLint>(Internal::GetGLTextureFiltering(m_Filtering)) });
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, { static_cast<GLint>(Internal::GetGLTextureFiltering(m_Filtering)) });
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, { static_cast<GLint>(m_Filtering) });
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, { static_cast<GLint>(m_Filtering) });
 
     if (!m_Filepath.empty())
     {

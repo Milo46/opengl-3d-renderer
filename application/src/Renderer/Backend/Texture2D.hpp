@@ -9,26 +9,18 @@
 
 NAMESPACE_BEGIN(Renderer)
 
-enum class TextureWrapping
+enum class TextureWrapping : RendererEnum
 {
-    None = 0,
-
-    Repeat,
-    MirroredRepeat,
-    ClampToEdge,
-    ClampToBorder,
-
-    EnumEnd,
+    Repeat         = 0x2901,
+    MirroredRepeat = 0x8370,
+    ClampToEdge    = 0x812F,
+    ClampToBorder  = 0x812D,
 };
 
-enum class TextureFiltering
+enum class TextureFiltering : RendererEnum
 {
-    None = 0,
-
-    Nearest,
-    Linear,
-
-    EnumEnd,
+    Nearest = 0x2600,
+    Linear  = 0x2601,
 };
 
 struct Texture2DProps

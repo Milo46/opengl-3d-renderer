@@ -1,7 +1,4 @@
-#include "Application/Application.hpp"
-#include "Utility/Checker.hpp"
-
-std::unique_ptr<Application> CreateApplication() noexcept;
+#include "Core/EntryPoint.hpp"
 
 int main(int argc, char** argv)
 {

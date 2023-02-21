@@ -11,6 +11,7 @@ add_subdirectory(vendor/GLAD)
 add_subdirectory(vendor/GLFW)
 add_subdirectory(vendor/glm)
 add_subdirectory(vendor/imgui)
+add_subdirectory(vendor/rocket)
 add_subdirectory(vendor/spdlog)
 
 # Application directory

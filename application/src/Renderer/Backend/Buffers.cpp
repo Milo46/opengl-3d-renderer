@@ -6,65 +6,59 @@
 
 NAMESPACE_BEGIN(Renderer)
 
-#define RENDERER_ENUM_DEFINITIONS(_ClassName, _OutputType, ...) \
-    constexpr static auto c_Invalid##_ClassName{ static_cast<RendererEnum>(-1) }; \
-    constexpr static inline auto _ClassName##Index(const _ClassName a) noexcept { return static_cast<std::size_t>(a) - 1u; } \
-    constexpr static inline auto Is##_ClassName##Valid(const _ClassName a) noexcept { return _ClassName::None < a && a < _ClassName::EnumEnd; } \
-    constexpr static inline auto GetGL##_ClassName(const _ClassName a) noexcept \
-    { \
-        const std::array<_OutputType, static_cast<std::size_t>(_ClassName::EnumEnd)> data{ \
-            __VA_ARGS__ \
-        }; \
-        return Is##_ClassName##Valid(a) ? data.at(_ClassName##Index(a)) : []() { \
-            spdlog::critical("[Internal] Invalid "#_ClassName" argument!"); \
-            return c_Invalid##_ClassName; \
-        }(); \
-    }
-
-namespace Internal
+static constexpr std::size_t _GetSize(const LayoutDataType& type) noexcept
 {
-    RENDERER_ENUM_DEFINITIONS(BufferUsage, RendererEnum,
-        GL_STREAM_DRAW,  GL_STREAM_READ,  GL_STREAM_COPY,
-        GL_STATIC_DRAW,  GL_STATIC_READ,  GL_STATIC_COPY,
-        GL_DYNAMIC_DRAW, GL_DYNAMIC_READ, GL_DYNAMIC_COPY,
-    );
+    constexpr auto booleanSize{ static_cast<std::size_t>(sizeof(bool))  };
+    constexpr auto integerSize{ static_cast<std::size_t>(sizeof(int))   };
+    constexpr auto floatSize  { static_cast<std::size_t>(sizeof(float)) };
 
-    constexpr static auto c_SizeofBoolean{ sizeof(bool)  };
-    constexpr static auto c_SizeofInteger{ sizeof(int)   };
-    constexpr static auto c_SizeofFloat  { sizeof(float) };
-
-    RENDERER_ENUM_DEFINITIONS(LayoutDataType, std::size_t,
-        c_SizeofBoolean * 1u,
-        c_SizeofInteger * 1u, c_SizeofInteger * 2u, c_SizeofInteger * 3u, c_SizeofInteger * 4u,
-        c_SizeofFloat   * 1u, c_SizeofFloat   * 2u, c_SizeofFloat   * 3u, c_SizeofFloat   * 4u,
-
-        c_SizeofFloat * 3u * 3u, c_SizeofFloat * 4u * 4u,
-    );
-
-    constexpr static inline std::size_t GetComponentCount(const LayoutDataType type) noexcept
+    switch (type)
     {
-        const std::array<std::size_t, static_cast<std::size_t>(LayoutDataType::EnumEnd)> data{
-            1u,
-            1u, 2u, 3u, 4u,
-            1u, 2u, 3u, 4u,
+    case LayoutDataType::Boolean: return booleanSize * 1u;
 
-            3u * 3u,
-            4u * 4u,
-        };
+    case LayoutDataType::Integer1: return integerSize * 1u;
+    case LayoutDataType::Integer2: return integerSize * 2u;
+    case LayoutDataType::Integer3: return integerSize * 3u;
+    case LayoutDataType::Integer4: return integerSize * 4u;
 
-        return IsLayoutDataTypeValid(type) ? data.at(LayoutDataTypeIndex(type)) : []() {
-            spdlog::critical("[Internal] Invalid LayoutDataType argument!");
-            return c_InvalidLayoutDataType;
-        }();
+    case LayoutDataType::Float1: return floatSize * 1u;
+    case LayoutDataType::Float2: return floatSize * 2u;
+    case LayoutDataType::Float3: return floatSize * 3u;
+    case LayoutDataType::Float4: return floatSize * 4u;
+
+    case LayoutDataType::Mat3: return floatSize * 3u * 3u;
+    case LayoutDataType::Mat4: return floatSize * 4u * 4u;
+    }
+}
+
+static constexpr std::size_t _GetComponentCount(const LayoutDataType& type) noexcept
+{
+    switch (type)
+    {
+        case LayoutDataType::Boolean:
+        case LayoutDataType::Integer1:
+        case LayoutDataType::Float1: return 1u;
+
+        case LayoutDataType::Integer2:
+        case LayoutDataType::Float2: return 2u;
+
+        case LayoutDataType::Integer3:
+        case LayoutDataType::Float3: return 3u;
+
+        case LayoutDataType::Integer4:
+        case LayoutDataType::Float4: return 4u;
+
+        case LayoutDataType::Mat3: return 3u * 3u;
+        case LayoutDataType::Mat4: return 4u * 4u;
     }
 }
 
 BufferElement::BufferElement(const LayoutDataType type, const std::string_view name, const bool normalized)
-    : Type{ type }, Name{ name }, Normalized{ normalized}, Size{ Internal::GetGLLayoutDataType(type) } {}
+    : Type{ type }, Name{ name }, Normalized{ normalized}, Size{ _GetSize(type) } {}
 
 std::size_t BufferElement::GetComponentCount() const noexcept
 {
-    return Internal::GetComponentCount(BufferElement::Type);
+    return _GetComponentCount(Type);
 }
 
 BufferLayout::BufferLayout(const std::initializer_list<BufferElement>& elements)
@@ -93,7 +87,7 @@ bool VertexBuffer::OnInitialize() noexcept
     
     glGenBuffers(1, &m_RendererID);
     glBindBuffer(GL_ARRAY_BUFFER, { m_RendererID });
-    glBufferData(GL_ARRAY_BUFFER, { static_cast<GLsizeiptr>(m_Props.DataSize * m_Props.VertSize) }, { m_Props.Data }, { Internal::GetGLBufferUsage(m_Props.Usage) });
+    glBufferData(GL_ARRAY_BUFFER, { static_cast<GLsizeiptr>(m_Props.DataSize * m_Props.VertSize) }, { m_Props.Data }, { static_cast<GLenum>(m_Props.Usage) });
 
     return true;
 }
@@ -128,7 +122,7 @@ bool IndexBuffer::OnInitialize() noexcept
         GL_ELEMENT_ARRAY_BUFFER,
         { static_cast<GLsizeiptr>(m_Props.Count * sizeof(uint32_t)) },
         { m_Props.Data },
-        { Internal::GetGLBufferUsage(m_Props.Usage) }
+        { static_cast<GLenum>(m_Props.Usage) }
     );
 
     return true;

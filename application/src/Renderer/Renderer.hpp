@@ -32,6 +32,19 @@ struct Translation
     glm::mat4 ComposeModelMatrix() const noexcept;
 };
 
+struct Vertex3D
+{
+    glm::vec3 Position{};
+    glm::vec3 Normal{};
+    glm::vec2 Texcoord{};
+
+    inline static const BufferLayout c_Layout{
+        { LayoutDataType::Float3, "a_Position", },
+        { LayoutDataType::Float3, "a_Normal",   },
+        { LayoutDataType::Float2, "a_Texcoord", },
+    };
+};
+
 struct Renderer3DStorage;
 
 class Renderer3DInstance : public RendererInstance
@@ -40,20 +53,6 @@ public: // experimental
     const std::shared_ptr<Shader>& GetFlatShader() const noexcept;
     
     std::size_t GetPrimitivesRendered() const noexcept;
-
-public:
-    struct Vertex
-    {
-        glm::vec3 Position{};
-        glm::vec3 Normal{};
-        glm::vec2 Texcoord{};
-
-        inline static const BufferLayout c_Layout{
-            { LayoutDataType::Float3, "a_Position", },
-            { LayoutDataType::Float3, "a_Normal",   },
-            { LayoutDataType::Float2, "a_Texcoord", },
-        };
-    };
 
 public:
     virtual bool OnInitialization() noexcept override;
@@ -86,6 +85,8 @@ using ResourceHandle = std::shared_ptr<_Ty>;
 struct Renderer3DStorage
 {
     ResourceHandle<VertexArray> PlaneVArray{};
+    ResourceHandle<VertexArray> CubeVArray{};
+    
     ResourceHandle<Shader> FlatShader{};
 
     ResourceHandle<Texture2D> FlatTexture{};

@@ -43,7 +43,7 @@ bool Renderer3DInstance::OnInitialization() noexcept
 
     m_Storage = std::make_unique<Renderer3DStorage>();
 
-    const std::array<::Renderer::Renderer3DInstance::Vertex, 4u> rectangleVertices = { {
+    const std::array<::Renderer::Vertex3D, 4u> rectangleVertices = { {
         // position                 normal                  texcoord
         { {  0.5f,  0.5f, 0.0f, }, { 0.0f, 0.0f, -1.0f, }, { 1.0f, 1.0f, }, }, // right top
         { {  0.5f, -0.5f, 0.0f, }, { 0.0f, 0.0f, -1.0f, }, { 1.0f, 0.0f, }, }, // right bottom
@@ -137,6 +137,17 @@ void Renderer3DInstance::DrawPlane(const Translation& translation)
 
 void Renderer3DInstance::DrawCube(const Translation& translation, const glm::vec3& color)
 {
+    m_Storage->FlatShader->SetUniform("u_ModelMatrix", translation.ComposeModelMatrix());
+
+    m_Storage->FlatShader->SetUniform("u_Material.Ambient",  glm::vec3{ 0.1f, 0.1f, 0.1f, });
+    m_Storage->FlatShader->SetUniform("u_Material.Diffuse",  glm::vec3{ 1.0f, 1.0f, 1.0f, });
+    m_Storage->FlatShader->SetUniform("u_Material.Specular", glm::vec3{ 0.5f, 0.5f, 0.5f, });
+    m_Storage->FlatShader->SetUniform("u_Material.Shininess", 32.0f);
+
+    RenderCommand::DrawArrays(m_Storage->CubeVArray);
+
+    m_Storage->PrimitivesCountTemp +=
+        m_Storage->CubeVArray->GetVertexBuffer()->GetSize() / 3u;
 }
 
 void Renderer3DInstance::SetPointLight(const glm::vec3& position, const glm::vec3& color)

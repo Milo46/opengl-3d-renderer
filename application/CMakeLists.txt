@@ -21,6 +21,7 @@ add_executable(${PROJECT_NAME}
     src/Renderer/Backend/Framebuffer.cpp
     src/Renderer/Camera/OrthographicCamera.cpp
     src/Renderer/Camera/PerspectiveCamera.cpp
+    src/Renderer/Loaders/OBJLoader.cpp
     src/Renderer/GraphicsContext.cpp
     src/Renderer/RenderCommand.cpp
     src/Renderer/Renderer.cpp
@@ -45,6 +46,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     ${CMAKE_SOURCE_DIR}/vendor/GLFW/include
     ${CMAKE_SOURCE_DIR}/vendor/glm
     ${CMAKE_SOURCE_DIR}/vendor/imgui
+    ${CMAKE_SOURCE_DIR}/vendor/rocket
     ${CMAKE_SOURCE_DIR}/vendor/spdlog/include
     ${CMAKE_SOURCE_DIR}/vendor/stb
 

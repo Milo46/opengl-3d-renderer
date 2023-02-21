@@ -3,6 +3,8 @@
 #include <glad/glad.h>
 #include <glfw/glfw3.h>
 
+#include "Renderer/Loaders/OBJLoader.hpp"
+
 UserScene::UserScene(std::unique_ptr<Window>& windowRef)
     : Scene{ windowRef },
       m_RendererContext{ std::make_unique<Renderer::Renderer3DInstance>() },
@@ -16,7 +18,7 @@ bool UserScene::OnInitialization()
     if (!m_RendererContext->OnInitialization()) return false;
 
     const auto modelData{ LoadOBJFile("assets/models/spaceship.obj", FaceType::Triangle) };
-    std::vector<Renderer::Renderer3DInstance::Vertex> convertedModelData(modelData.Data.size());
+    std::vector<Renderer::Vertex3D> convertedModelData(modelData.Data.size());
     for (std::size_t i = 0u; i < modelData.Data.size(); ++i)
     {
         const auto& vertex{ modelData.Data[i] };
@@ -35,6 +37,9 @@ bool UserScene::OnInitialization()
         .VertexBufferPtr = modelVB,
     });
     if (!m_Model->OnInitialize()) return false;
+
+    // const OBJLoader loader{};
+    // m_Model = loader.LoadModel("assets/models/spaceship.obj");
 
     m_DiffuseMap = Renderer::AllocateResource<Renderer::Texture2D>({
         .Filepath = "assets/textures/spaceship/diffuse_map.jpg",
@@ -101,6 +106,7 @@ void UserScene::OnRender() noexcept
     m_RendererContext->BeginScene(&m_Camera);
     m_RendererContext->SetPointLight(m_Camera.GetPosition(), glm::vec3(1.0f));
 
+    // m_RendererContext->DrawCube({});
     m_RendererContext->DrawArrays(m_Model, m_DiffuseMap, m_SpecularMap, m_EmissionMap, false);
 
     m_RendererContext->EndScene();

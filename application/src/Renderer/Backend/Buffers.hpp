@@ -10,29 +10,28 @@
 
 NAMESPACE_BEGIN(Renderer)
 
-enum class BufferUsage
+/**
+ * TODO: somehow and somewhere verify those values, if they're the same as in the glad
+ */
+enum class BufferUsage : RendererEnum
 {
-    None = 0,
-    StreamDraw,  StreamRead,  StreamCopy,
-    StaticDraw,  StaticRead,  StaticCopy,
-    DynamicDraw, DynamicRead, DynamicCopy,
-    EnumEnd,
+    StreamDraw  = 0x88E0, StreamRead  = 0x88E1, StreamCopy  = 0x88E2,
+    StaticDraw  = 0x88E4, StaticRead  = 0x88E5, StaticCopy  = 0x88E6,
+    DynamicDraw = 0x88E8, DynamicRead = 0x88E9, DynamicCopy = 0x88EA,
 };
 
-enum class LayoutDataType
+enum class LayoutDataType : RendererEnum
 {
-    None = 0,
     Boolean,
     Integer1, Integer2, Integer3, Integer4,
     Float1, Float2, Float3, Float4,
     Mat3, Mat4,
-    EnumEnd,
 };
 
 struct BufferElement
 {
     std::string_view Name{};
-    LayoutDataType Type{ LayoutDataType::None };
+    LayoutDataType Type{};
 
     std::size_t Size{ 0u };
     std::size_t Offset{ 0u };
