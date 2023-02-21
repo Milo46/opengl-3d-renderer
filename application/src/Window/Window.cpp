@@ -89,6 +89,16 @@ bool Window::Initialize() noexcept
     })) return false;
 
     s_GLFWInitialized = true;
+
+    int displaysCount{ 0 };
+    GLFWmonitor** monitors{ glfwGetMonitors(&displaysCount) };
+
+    if (!displaysCount)
+    {
+        spdlog::error("[GLFW] There are no displays connected! How do you want to render anything?");
+        return false;
+    }
+
     m_Window = glfwCreateWindow({ m_Size.x }, { m_Size.y }, m_Title.c_str(), nullptr, nullptr);
 
     m_GraphicsContext.reset(new Renderer::GraphicsContext{ m_Window });
