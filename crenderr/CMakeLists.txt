@@ -1,30 +1,72 @@
-project(crenderr VERSION 1.0.0)
+project(crenderr)
+
+# GLFW options
+set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+
+# 3rd party libraries
+add_subdirectory(vendor/entt)
+add_subdirectory(vendor/GLAD)
+add_subdirectory(vendor/GLFW)
+add_subdirectory(vendor/glm)
+add_subdirectory(vendor/imgui)
+add_subdirectory(vendor/rocket)
+add_subdirectory(vendor/spdlog)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-add_executable(${PROJECT_NAME}
+add_library(${PROJECT_NAME}-lib STATIC
 
+    source/Utility/Checker.cpp
+    source/Utility/FileManager.cpp
+
+    source/Logger/Logger.cpp
+    source/Filesystem/Filesystem.cpp
+
+    source/Renderer/RendererCore.hpp
+    source/Renderer/GraphicsContext.cpp
+    source/Renderer/RenderCommand.cpp
+
+    source/Renderer/Backend/Buffers.cpp
+    source/Renderer/Backend/VertexArray.cpp
+    source/Renderer/Backend/Texture2D.cpp
+    source/Renderer/Backend/Framebuffer.cpp
+    source/Renderer/Backend/Shader.cpp
+
+    source/Renderer/Camera/OrthographicCamera.cpp
+    source/Renderer/Camera/PerspectiveCamera.cpp
+
+    source/Renderer/Loaders/OBJLoader.cpp
+
+    source/Renderer/Renderer.cpp
+
+    source/ImGui/ImGuiContext.cpp
+
+    source/Window/Window.cpp
+    source/Application/Scene.cpp
+    source/Application/Application.cpp
     source/Core/EntryPoint.cpp
 
 )
 
-target_link_libraries(${PROJECT_NAME} PUBLIC
+target_link_libraries(${PROJECT_NAME}-lib PUBLIC
     glad
     glfw
     spdlog
     imgui
 )
 
-target_include_directories(${PROJECT_NAME} PUBLIC
-    ${CMAKE_SOURCE_DIR}/vendor/entt/src
-    ${CMAKE_SOURCE_DIR}/vendor/GLAD/include
-    ${CMAKE_SOURCE_DIR}/vendor/GLFW/include
-    ${CMAKE_SOURCE_DIR}/vendor/glm
-    ${CMAKE_SOURCE_DIR}/vendor/imgui
-    ${CMAKE_SOURCE_DIR}/vendor/rocket
-    ${CMAKE_SOURCE_DIR}/vendor/spdlog/include
-    ${CMAKE_SOURCE_DIR}/vendor/stb
+target_include_directories(${PROJECT_NAME}-lib PUBLIC
+    ${PROJECT_SOURCE_DIR}/vendor/entt/src
+    ${PROJECT_SOURCE_DIR}/vendor/GLAD/include
+    ${PROJECT_SOURCE_DIR}/vendor/GLFW/include
+    ${PROJECT_SOURCE_DIR}/vendor/glm
+    ${PROJECT_SOURCE_DIR}/vendor/imgui
+    ${PROJECT_SOURCE_DIR}/vendor/rocket
+    ${PROJECT_SOURCE_DIR}/vendor/spdlog/include
+    ${PROJECT_SOURCE_DIR}/vendor/stb
 
-    ${PROJECT_SOURCE_DIR}/include
+    ${PROJECT_SOURCE_DIR}/source
 )

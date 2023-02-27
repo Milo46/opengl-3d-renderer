@@ -43,9 +43,9 @@ bool GraphicsContext::Initialize() noexcept
     // glFrontFace(GL_CW);
 
     spdlog::info("OpenGL info:");
-    spdlog::info("\tVendor: {}", glGetString(GL_VENDOR));
-    spdlog::info("\tRenderer: {}", glGetString(GL_RENDERER));
-    spdlog::info("\tVersion: {}", glGetString(GL_VERSION));
+    spdlog::info("\tVendor: {}",   reinterpret_cast<const char*>(glGetString(GL_VENDOR)));
+    spdlog::info("\tRenderer: {}", reinterpret_cast<const char*>(glGetString(GL_RENDERER)));
+    spdlog::info("\tVersion: {}",  reinterpret_cast<const char*>(glGetString(GL_VERSION)));
 
     return true;
 }

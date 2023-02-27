@@ -1,6 +1,8 @@
 #pragma once
 
-#include "Application.hpp"
+#include <Application/Scene.hpp>
+
+#include <Renderer/Renderer.hpp>
 
 class UserScene : public Scene
 {
@@ -8,11 +10,11 @@ public:
     explicit UserScene(std::unique_ptr<Window>& windowRef);
 
 public:
-    virtual bool OnInitialization() override;
+    virtual bool OnInit() override;
 
-    virtual void OnUpdate(const Timestamp& timestamp) noexcept override;
-    virtual void OnRender() noexcept override;
-    virtual void OnImGuiRender(ImGuiIO& io, const Timestamp& timestamp) noexcept override;
+    virtual void OnUpdate(const Timestamp& timestamp) override;
+    virtual void OnRender() override;
+    virtual void OnImGuiRender(ImGuiIO& io, const Timestamp& timestamp) override;
 
 public:
     std::unique_ptr<Renderer::Renderer3DInstance> m_RendererContext;

@@ -2,6 +2,8 @@
 
 #include "Utility/NonConstructible.hpp"
 
+#include <string>
+
 class Filesystem : public NonConstructible
 {
 public:

@@ -7,7 +7,7 @@
 #include <spdlog/spdlog.h>
 
 // Temporary, include obj loading into the main framework.
-#include "Application/OBJLoader.hpp"
+// #include "Application/OBJLoader.hpp"
 
 NAMESPACE_BEGIN(Renderer)
 

@@ -7,23 +7,30 @@
 
 #include <glm/glm.hpp>
 
-#include "Renderer/GraphicsContext.hpp"
-#include "Utility/NonCopyable.hpp"
-
 struct GLFWwindow;
 struct GLFWmonitor;
+
+namespace Renderer
+{
+    class GraphicsContext;
+}
 
 enum class WindowAction
 {
     None = 0,
 
     ToggleFullscreen,
-    Miximize,
-    Iconify,
+    Maximize,
+    Minimize,
     Close,
 };
 
-class Window : public NonCopyable<Window>
+/**
+ * TODO: to complete, make the window an event emitter.
+ */
+enum class WindowEvent {};
+
+class Window
 {
     friend void WindowFramebufferCallback(GLFWwindow*, int, int);
     friend void WindowKeyCallback(GLFWwindow*, int, int, int, int);
@@ -32,28 +39,29 @@ class Window : public NonCopyable<Window>
 
 public:
     using KeybindsContainer = std::unordered_map<WindowAction, std::unordered_set<int>>;
-
     static const KeybindsContainer c_DefaultKeybinds;
-    // { WindowAction::ToggleFullscreen, { GLFW_KEY_F11,    }, },
-    // { WindowAction::Close,            { GLFW_KEY_ESCAPE, }, },
 
 public:
     Window() = default;
     explicit Window(const std::string_view title, const glm::ivec2& size) noexcept;
     ~Window();
 
-    bool Initialize() noexcept;
-    bool IsOpen() noexcept;
-
-    void OnUpdate() noexcept;
-
-    void Maximize() noexcept;
-    void Iconify() noexcept;
-    void Close() noexcept;
+    Window(const Window&) = delete;
+    Window& operator=(const Window&) = delete;
 
 public:
-    void SetKeybinds(const KeybindsContainer& keybinds) noexcept;
-    void AddKeybinds(const KeybindsContainer& keybinds) noexcept;
+    bool OnInit() noexcept;
+    bool IsOpen();
+
+    void OnUpdate();
+
+    void Maximize();
+    void Minimize();
+    void Close();
+
+public:
+    void SetKeybinds(const KeybindsContainer& keybinds);
+    void AddKeybinds(const KeybindsContainer& keybinds);
 
 public:
     bool IsFullscreen() const;
@@ -62,7 +70,7 @@ public:
     bool IsFocused() const;
 
     bool IsVSync() const;
-    bool SetVSync(const bool flag);
+    bool SetVSync(bool flag);
 
     const glm::ivec2& GetSize() const;
     const glm::ivec2& GetPosition() const;
@@ -73,7 +81,7 @@ public:
     float GetAspectRatio() const;
 
 public:
-    inline GLFWwindow* GetNativeWindow() const noexcept { return m_Window; }
+    inline GLFWwindow* GetNativeWindow() const { return m_Window; }
 
 private:
     GLFWwindow* m_Window{ nullptr };

@@ -6,6 +6,8 @@
 
 #include "Utility/Checker.hpp"
 
+#include "Renderer/GraphicsContext.hpp"
+
 const Window::KeybindsContainer Window::c_DefaultKeybinds{
     { WindowAction::ToggleFullscreen, { GLFW_KEY_F11,    }, },
     { WindowAction::Close,            { GLFW_KEY_ESCAPE, }, },
@@ -49,8 +51,8 @@ void WindowKeyCallback(GLFWwindow* window, int key, int scancode, int action, in
                 userPointer->SetFullscreen(!userPointer->m_IsFullscreen);
                 break;
 
-            case WindowAction::Miximize: userPointer->Maximize(); break;
-            case WindowAction::Iconify:  userPointer->Iconify();  break;
+            case WindowAction::Maximize: userPointer->Maximize(); break;
+            case WindowAction::Minimize: userPointer->Minimize(); break;
 
             default: break;
             }
@@ -80,7 +82,7 @@ Window::~Window()
     glfwTerminate();
 }
 
-bool Window::Initialize() noexcept
+bool Window::OnInit() noexcept
 {
     glfwSetErrorCallback(GLFWErrorCallback);
     if (!Checker::PerformSequence(spdlog::level::critical, {
@@ -122,38 +124,38 @@ bool Window::Initialize() noexcept
     return true;
 }
 
-bool Window::IsOpen() noexcept
+bool Window::IsOpen()
 {
     return !glfwWindowShouldClose(m_Window);
 }
 
-void Window::OnUpdate() noexcept
+void Window::OnUpdate()
 {
     glfwPollEvents();
     m_GraphicsContext->SwapBuffers();
 }
 
-void Window::Maximize() noexcept
+void Window::Maximize()
 {
     glfwMaximizeWindow(m_Window);
 }
 
-void Window::Iconify() noexcept
+void Window::Minimize()
 {
     glfwIconifyWindow(m_Window);
 }
 
-void Window::Close() noexcept
+void Window::Close()
 {
     glfwSetWindowShouldClose(m_Window, 1);
 }
 
-void Window::SetKeybinds(const KeybindsContainer& keybinds) noexcept
+void Window::SetKeybinds(const KeybindsContainer& keybinds)
 {
     m_Keybinds = keybinds;
 }
 
-void Window::AddKeybinds(const KeybindsContainer& keybinds) noexcept
+void Window::AddKeybinds(const KeybindsContainer& keybinds)
 {
     for (const auto& [action, binds] : keybinds)
         for (const auto& bind : binds) m_Keybinds[action].insert(bind);
