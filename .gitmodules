@@ -1,0 +1,22 @@
+[submodule "crenderr/vendor/entt"]
+	path = crenderr/vendor/entt
+	url = https://github.com/skypjack/entt
+[submodule "crenderr/vendor/stb"]
+	path = crenderr/vendor/stb
+	url = https://github.com/nothings/stb
+[submodule "crenderr/vendor/spdlog"]
+	path = crenderr/vendor/spdlog
+	url = https://github.com/gabime/spdlog
+[submodule "crenderr/vendor/rocket"]
+	path = crenderr/vendor/rocket
+	url = https://github.com/tripleslash/rocket
+[submodule "crenderr/vendor/glm"]
+	path = crenderr/vendor/glm
+	url = https://github.com/g-truc/glm
+[submodule "crenderr/vendor/glfw"]
+	path = crenderr/vendor/glfw
+	url = https://github.com/glfw/glfw
+[submodule "crenderr/vendor/imgui"]
+	path = crenderr/vendor/imgui
+	url = https://github.com/ocornut/imgui
+    branch = docking
