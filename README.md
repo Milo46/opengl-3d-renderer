@@ -1,6 +1,6 @@
-# 💻 C++ OpenGL Custom 2D & 3D Renderer
+# 💻 Crenderr - Model Viewer (C++ & OpenGL)
 
-🔵 Simple 2D & 3D renderer made with OpenGL written in C++. \
+🔵 3D model viewer made with OpenGL and written in C++. \
 🔴 The project is still in the early stage of development!
 
 ## ⚙️ Installation
