@@ -64,7 +64,6 @@ target_include_directories(${PROJECT_NAME}-lib PUBLIC
     ${PROJECT_SOURCE_DIR}/vendor/glfw/include
     ${PROJECT_SOURCE_DIR}/vendor/glm
     ${PROJECT_SOURCE_DIR}/vendor/imgui
-    ${PROJECT_SOURCE_DIR}/vendor/rocket
     ${PROJECT_SOURCE_DIR}/vendor/spdlog/include
     ${PROJECT_SOURCE_DIR}/vendor/stb
 

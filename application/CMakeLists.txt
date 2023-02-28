@@ -22,7 +22,6 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     ${CMAKE_SOURCE_DIR}/crenderr/vendor/glfw/include
     ${CMAKE_SOURCE_DIR}/crenderr/vendor/glm
     ${CMAKE_SOURCE_DIR}/crenderr/vendor/imgui
-    ${CMAKE_SOURCE_DIR}/crenderr/vendor/rocket
     ${CMAKE_SOURCE_DIR}/crenderr/vendor/spdlog/include
     ${CMAKE_SOURCE_DIR}/crenderr/vendor/stb
 )
