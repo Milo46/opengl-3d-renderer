@@ -73,7 +73,7 @@ bool Texture2D::OnInitialize() noexcept
     }
     else
     {
-        const auto dataSize{ m_Size.x * m_Size.y * 4u };
+        const std::size_t dataSize{ m_Size.x * m_Size.y * 4u };
         auto data = new unsigned char[dataSize]{};
         std::fill(data, data + static_cast<std::ptrdiff_t>(dataSize), 255u);
 
