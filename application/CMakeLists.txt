@@ -19,7 +19,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 
     ${CMAKE_SOURCE_DIR}/crenderr/vendor/entt/src
     ${CMAKE_SOURCE_DIR}/crenderr/vendor/GLAD/include
-    ${CMAKE_SOURCE_DIR}/crenderr/vendor/GLFW/include
+    ${CMAKE_SOURCE_DIR}/crenderr/vendor/glfw/include
     ${CMAKE_SOURCE_DIR}/crenderr/vendor/glm
     ${CMAKE_SOURCE_DIR}/crenderr/vendor/imgui
     ${CMAKE_SOURCE_DIR}/crenderr/vendor/rocket

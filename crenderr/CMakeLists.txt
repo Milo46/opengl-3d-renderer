@@ -61,7 +61,7 @@ target_link_libraries(${PROJECT_NAME}-lib PUBLIC
 target_include_directories(${PROJECT_NAME}-lib PUBLIC
     ${PROJECT_SOURCE_DIR}/vendor/entt/src
     ${PROJECT_SOURCE_DIR}/vendor/GLAD/include
-    ${PROJECT_SOURCE_DIR}/vendor/GLFW/include
+    ${PROJECT_SOURCE_DIR}/vendor/glfw/include
     ${PROJECT_SOURCE_DIR}/vendor/glm
     ${PROJECT_SOURCE_DIR}/vendor/imgui
     ${PROJECT_SOURCE_DIR}/vendor/rocket
