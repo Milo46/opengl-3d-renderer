@@ -7,9 +7,6 @@
 [submodule "crenderr/vendor/spdlog"]
 	path = crenderr/vendor/spdlog
 	url = https://github.com/gabime/spdlog
-[submodule "crenderr/vendor/rocket"]
-	path = crenderr/vendor/rocket
-	url = https://github.com/tripleslash/rocket
 [submodule "crenderr/vendor/glm"]
 	path = crenderr/vendor/glm
 	url = https://github.com/g-truc/glm
