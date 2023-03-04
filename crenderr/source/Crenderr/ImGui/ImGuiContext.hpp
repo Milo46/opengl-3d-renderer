@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Window/Window.hpp"
+
 #include <imgui.h>
 
 class ImGuiBuildContext

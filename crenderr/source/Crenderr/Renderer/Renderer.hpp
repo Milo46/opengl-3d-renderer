@@ -1,8 +1,9 @@
-#pragma once
+    #pragma once
 
 #include "RendererCore.hpp"
 
 #include "Renderer/RenderCommand.hpp"
+#include "Renderer/RendererElements.hpp"
 
 #include "Renderer/Backend/Buffers.hpp"
 #include "Renderer/Backend/Shader.hpp"
@@ -21,28 +22,6 @@ public:
 
     virtual void BeginScene(Camera* camera) noexcept = 0;
     virtual void EndScene() noexcept = 0;
-};
-
-struct Translation
-{
-    glm::vec3 Scale    = { glm::vec3(1.0f) };
-    glm::vec3 Position = { glm::vec3(0.0f) };
-    glm::vec3 Rotation = { glm::vec3(0.0f) }; // 0.0f - 360.0f (deg.)
-
-    glm::mat4 ComposeModelMatrix() const noexcept;
-};
-
-struct Vertex3D
-{
-    glm::vec3 Position{};
-    glm::vec3 Normal{};
-    glm::vec2 Texcoord{};
-
-    inline static const BufferLayout c_Layout{
-        { LayoutDataType::Float3, "a_Position", },
-        { LayoutDataType::Float3, "a_Normal",   },
-        { LayoutDataType::Float2, "a_Texcoord", },
-    };
 };
 
 struct Renderer3DStorage;

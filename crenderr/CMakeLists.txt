@@ -1,4 +1,4 @@
-project(crenderr)
+project(crenderr-lib)
 
 # GLFW options
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
@@ -13,51 +13,49 @@ add_subdirectory(vendor/glm)
 add_subdirectory(vendor/imgui)
 add_subdirectory(vendor/spdlog)
 
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+add_library(${PROJECT_NAME} STATIC
 
-add_library(${PROJECT_NAME}-lib STATIC
+    source/Crenderr/Utility/Checker.cpp
+    source/Crenderr/Utility/FileManager.cpp
 
-    source/Utility/Checker.cpp
-    source/Utility/FileManager.cpp
+    source/Crenderr/Logger/Logger.cpp
+    source/Crenderr/Filesystem/Filesystem.cpp
 
-    source/Logger/Logger.cpp
-    source/Filesystem/Filesystem.cpp
+    source/Crenderr/Renderer/RendererCore.hpp
+    source/Crenderr/Renderer/GraphicsContext.cpp
+    source/Crenderr/Renderer/RenderCommand.cpp
 
-    source/Renderer/RendererCore.hpp
-    source/Renderer/GraphicsContext.cpp
-    source/Renderer/RenderCommand.cpp
+    source/Crenderr/Renderer/Backend/Buffers.cpp
+    source/Crenderr/Renderer/Backend/VertexArray.cpp
+    source/Crenderr/Renderer/Backend/Texture2D.cpp
+    source/Crenderr/Renderer/Backend/Framebuffer.cpp
+    source/Crenderr/Renderer/Backend/Shader.cpp
 
-    source/Renderer/Backend/Buffers.cpp
-    source/Renderer/Backend/VertexArray.cpp
-    source/Renderer/Backend/Texture2D.cpp
-    source/Renderer/Backend/Framebuffer.cpp
-    source/Renderer/Backend/Shader.cpp
+    source/Crenderr/Renderer/Camera/OrthographicCamera.cpp
+    source/Crenderr/Renderer/Camera/PerspectiveCamera.cpp
 
-    source/Renderer/Camera/OrthographicCamera.cpp
-    source/Renderer/Camera/PerspectiveCamera.cpp
+    source/Crenderr/Renderer/Loaders/OBJLoader.cpp
 
-    source/Renderer/Loaders/OBJLoader.cpp
+    source/Crenderr/Renderer/RendererElements.cpp
+    source/Crenderr/Renderer/Renderer.cpp
 
-    source/Renderer/Renderer.cpp
+    source/Crenderr/ImGui/ImGuiContext.cpp
 
-    source/ImGui/ImGuiContext.cpp
-
-    source/Window/Window.cpp
-    source/Application/Scene.cpp
-    source/Application/Application.cpp
-    source/Core/EntryPoint.cpp
+    source/Crenderr/Window/Window.cpp
+    source/Crenderr/Application/Scene.cpp
+    source/Crenderr/Application/Application.cpp
+    source/Crenderr/Core/EntryPoint.cpp
 
 )
 
-target_link_libraries(${PROJECT_NAME}-lib PUBLIC
+target_link_libraries(${PROJECT_NAME} PUBLIC
     glad
     glfw
     spdlog
     imgui
 )
 
-target_include_directories(${PROJECT_NAME}-lib PUBLIC
+target_include_directories(${PROJECT_NAME} PUBLIC
     ${PROJECT_SOURCE_DIR}/vendor/entt/src
     ${PROJECT_SOURCE_DIR}/vendor/GLAD/include
     ${PROJECT_SOURCE_DIR}/vendor/glfw/include
@@ -66,5 +64,5 @@ target_include_directories(${PROJECT_NAME}-lib PUBLIC
     ${PROJECT_SOURCE_DIR}/vendor/spdlog/include
     ${PROJECT_SOURCE_DIR}/vendor/stb
 
-    ${PROJECT_SOURCE_DIR}/source
+    ${PROJECT_SOURCE_DIR}/source/Crenderr
 )

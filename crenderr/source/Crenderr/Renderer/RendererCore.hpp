@@ -63,16 +63,5 @@ namespace EnumHelpers
 
 NAMESPACE_END(Renderer)
 
-#define DECLARE_CREATABLE(_ClassName) \
-    using DefaultPropsType = _ClassName##Props
-
-#define DEFINE_DEFAULT_CREATE(_ClassName) \
-    template<> \
-    inline std::shared_ptr<_ClassName> Create<_ClassName, _ClassName::DefaultPropsType>(const _ClassName::DefaultPropsType& props) noexcept \
-    { \
-        static_assert(std::is_base_of_v<RendererElement, _ClassName>); \
-        return std::make_shared<_ClassName>(props); \
-    }
-
 #define CREATE_ENUM_MAPPING(_EnumType, _ReturnType, _Name, ...) \
     constexpr std::array<_ReturnType, static_cast<std::size_t>(_EnumType::EnumEnd)> _Name{ __VA_ARGS__ }

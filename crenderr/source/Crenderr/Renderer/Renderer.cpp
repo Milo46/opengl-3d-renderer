@@ -11,18 +11,6 @@
 
 NAMESPACE_BEGIN(Renderer)
 
-glm::mat4 Translation::ComposeModelMatrix() const noexcept
-{
-    auto model{ glm::identity<glm::mat4>() };
-    model = glm::translate(model, Position);
-    model = glm::rotate(model, glm::radians(Rotation.x), { 1.0f, 0.0f, 0.0f, });
-    model = glm::rotate(model, glm::radians(Rotation.y), { 0.0f, 1.0f, 0.0f, });
-    model = glm::rotate(model, glm::radians(Rotation.z), { 0.0f, 0.0f, 1.0f, });
-    model = glm::scale(model, Scale);
-
-    return model;
-}
-
 const std::shared_ptr<Shader>& Renderer3DInstance::GetFlatShader() const noexcept
 {
     return m_Storage->FlatShader;
@@ -43,7 +31,7 @@ bool Renderer3DInstance::OnInitialization() noexcept
 
     m_Storage = std::make_unique<Renderer3DStorage>();
 
-    const std::array<::Renderer::Vertex3D, 4u> rectangleVertices = { {
+    const std::array<Vertex3D, 4u> rectangleVertices = { {
         // position                 normal                  texcoord
         { {  0.5f,  0.5f, 0.0f, }, { 0.0f, 0.0f, -1.0f, }, { 1.0f, 1.0f, }, }, // right top
         { {  0.5f, -0.5f, 0.0f, }, { 0.0f, 0.0f, -1.0f, }, { 1.0f, 0.0f, }, }, // right bottom
@@ -171,6 +159,10 @@ void Renderer3DInstance::DrawArrays(
     m_Storage->FlatShader->SetUniform("u_Material.Diffuse",  glm::vec3{ 1.0f, 1.0f, 1.0f, });
     m_Storage->FlatShader->SetUniform("u_Material.Specular", glm::vec3{ 0.5f, 0.5f, 0.5f, });
     m_Storage->FlatShader->SetUniform("u_Material.Shininess", 32.0f);
+
+    if (diffuse.get())
+    {
+    }
 
     glActiveTexture(GL_TEXTURE0);
     diffuse->Bind();

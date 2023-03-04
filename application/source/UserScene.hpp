@@ -1,8 +1,7 @@
 #pragma once
 
-#include <Application/Scene.hpp>
-
-#include <Renderer/Renderer.hpp>
+#include <Crenderr/Application/Scene.hpp>
+#include <Crenderr/Renderer/Renderer.hpp>
 
 class UserScene : public Scene
 {
@@ -26,4 +25,9 @@ public:
     std::shared_ptr<Renderer::Texture2D> m_DiffuseMap{};
     std::shared_ptr<Renderer::Texture2D> m_SpecularMap{};
     std::shared_ptr<Renderer::Texture2D> m_EmissionMap{};
+
+    bool m_IsMouseCaptured{ false };
+    bool m_IsFirstCaptureFrame{ false };
+    glm::vec2 m_PrevFrameCursorPos{};
+    glm::vec2 m_CurrFrameCursorPos{};
 };

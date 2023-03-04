@@ -29,7 +29,7 @@ bool Filesystem::Initialize() noexcept
 
     // Please, do not move this file, otherwise it'll break.
     const std::filesystem::path currentFilePath{ __FILE__ };
-    const std::filesystem::path currentProjectPath{ PopLastElement(currentFilePath, 3u) };
+    const std::filesystem::path currentProjectPath{ PopLastElement(currentFilePath, 4u) };
 
     std::filesystem::current_path(currentProjectPath);
     spdlog::info("[Filesystem]: Current path: {}", currentProjectPath.string());

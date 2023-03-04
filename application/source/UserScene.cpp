@@ -1,6 +1,12 @@
 #include "UserScene.hpp"
 
-#include <Renderer/Loaders/OBJLoader.hpp>
+#include <Crenderr/Renderer/Loaders/OBJLoader.hpp>
+
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+#include <spdlog/spdlog.h>
+
+#include <Crenderr/ImGui/ImGuiContext.hpp>
 
 UserScene::UserScene(std::unique_ptr<Window>& windowRef)
     : Scene{ windowRef },
@@ -40,6 +46,50 @@ bool UserScene::OnInit()
 
 void UserScene::OnUpdate(const Timestamp& timestamp)
 {
+    { //glfw-code-begin
+
+        // Prevents from imgui and mouse capture conflict.
+        if (!ImGui::GetIO().WantCaptureMouse)
+        {
+            GLFWwindow* window{ Scene::GetWindow()->GetNativeWindow() };
+
+            if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS && !m_IsFirstCaptureFrame)
+            {
+                m_IsFirstCaptureFrame = true;
+
+                glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+                m_IsMouseCaptured = true;
+
+                double xpos{}, ypos{};
+                glfwGetCursorPos(window, &xpos, &ypos);
+                m_PrevFrameCursorPos = { xpos, ypos, };
+                m_CurrFrameCursorPos = { xpos, ypos, };
+            }
+
+            if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE)
+            {
+                glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+                m_IsMouseCaptured = false;
+                m_IsFirstCaptureFrame = false;
+            }
+        }
+    } //glfw-code-end
+
+    if (m_IsMouseCaptured)
+    {
+        // spdlog::info("Cursor position: {} {}", m_CurrFrameCursorPos.x, m_CurrFrameCursorPos.y);
+
+        const auto delta{ m_CurrFrameCursorPos - m_PrevFrameCursorPos };
+
+        spdlog::info("Cursor speed: {} {}", delta.x, delta.y);
+
+        double xpos{}, ypos{};
+        glfwGetCursorPos(Scene::GetWindow()->GetNativeWindow(), &xpos, &ypos);
+
+        m_PrevFrameCursorPos = m_CurrFrameCursorPos;
+        m_CurrFrameCursorPos = { xpos, ypos };
+    }
+
     m_Camera.OnUpdate(Scene::GetWindow()->GetAspectRatio());
 
     glm::vec3 newPosition{};
