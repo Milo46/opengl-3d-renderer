@@ -29,6 +29,8 @@ static constexpr std::size_t _GetSize(const LayoutDataType& type) noexcept
     case LayoutDataType::Mat3: return floatSize * 3u * 3u;
     case LayoutDataType::Mat4: return floatSize * 4u * 4u;
     }
+
+    return 0u;
 }
 
 static constexpr std::size_t _GetComponentCount(const LayoutDataType& type) noexcept
@@ -51,6 +53,8 @@ static constexpr std::size_t _GetComponentCount(const LayoutDataType& type) noex
         case LayoutDataType::Mat3: return 3u * 3u;
         case LayoutDataType::Mat4: return 4u * 4u;
     }
+
+    return 0u;
 }
 
 BufferElement::BufferElement(const LayoutDataType type, const std::string_view name, const bool normalized)

@@ -77,11 +77,15 @@ void UserScene::OnUpdate(const Timestamp& timestamp)
 
     if (m_IsMouseCaptured)
     {
-        // spdlog::info("Cursor position: {} {}", m_CurrFrameCursorPos.x, m_CurrFrameCursorPos.y);
-
         const auto delta{ m_CurrFrameCursorPos - m_PrevFrameCursorPos };
 
         spdlog::info("Cursor speed: {} {}", delta.x, delta.y);
+        {
+            m_XAngle += delta.x * m_MouseSensitivity;
+            m_YAngle += delta.y * m_MouseSensitivity;
+
+            m_YAngle = std::clamp(m_YAngle, -89.9f, 89.9f);
+        }
 
         double xpos{}, ypos{};
         glfwGetCursorPos(Scene::GetWindow()->GetNativeWindow(), &xpos, &ypos);
@@ -92,9 +96,11 @@ void UserScene::OnUpdate(const Timestamp& timestamp)
 
     m_Camera.OnUpdate(Scene::GetWindow()->GetAspectRatio());
 
-    glm::vec3 newPosition{};
-    newPosition.x = m_CameraArmLength * sin(timestamp.TotalTime);
-    newPosition.z = m_CameraArmLength * cos(timestamp.TotalTime);
+    glm::vec3 newPosition{
+        m_CameraArmLength * cos(glm::radians(m_XAngle)) * cos(glm::radians(m_YAngle)),
+        m_CameraArmLength * sin(glm::radians(m_YAngle)),
+        m_CameraArmLength * sin(glm::radians(m_XAngle)) * cos(glm::radians(m_YAngle)),
+    };
 
     m_Camera
         .SetPosition(newPosition)

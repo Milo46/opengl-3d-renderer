@@ -30,4 +30,8 @@ public:
     bool m_IsFirstCaptureFrame{ false };
     glm::vec2 m_PrevFrameCursorPos{};
     glm::vec2 m_CurrFrameCursorPos{};
+
+    float m_XAngle{ 0.0f };
+    float m_YAngle{ 0.0f };
+    float m_MouseSensitivity{ 0.07f };
 };

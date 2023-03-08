@@ -41,7 +41,7 @@ public:
 private:
     void RecalculateViewMatrix();
 
-private:
+public:
     glm::mat4 m_ViewMatrix{};
     glm::mat4 m_ProjectionMatrix{};
 
