@@ -26,12 +26,14 @@ public:
     std::shared_ptr<Renderer::Texture2D> m_SpecularMap{};
     std::shared_ptr<Renderer::Texture2D> m_EmissionMap{};
 
+    std::shared_ptr<Renderer::VertexArray> m_Grid{};
+
     bool m_IsMouseCaptured{ false };
     bool m_IsFirstCaptureFrame{ false };
     glm::vec2 m_PrevFrameCursorPos{};
     glm::vec2 m_CurrFrameCursorPos{};
 
-    float m_XAngle{ 0.0f };
+    float m_XAngle{ 90.0f };
     float m_YAngle{ 0.0f };
     float m_MouseSensitivity{ 0.07f };
 };
