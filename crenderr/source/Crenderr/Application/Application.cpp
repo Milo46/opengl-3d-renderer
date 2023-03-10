@@ -55,7 +55,7 @@ void Application::Run()
         OnRender();
 
         m_ImGuiContext->PreRender();
-        OnImGuiRender(m_ImGuiContext->GetIO());
+        OnImGuiRender(m_ImGuiContext->GetIO(), m_Timestamp);
         m_ImGuiContext->PostRender();
     }
 }

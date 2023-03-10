@@ -13,7 +13,7 @@ protected:
 
     virtual void OnUpdate(const Timestamp& timestamp) override;
     virtual void OnRender() override;
-    virtual void OnImGuiRender(ImGuiIO& io) override;
+    virtual void OnImGuiRender(ImGuiIO& io, const Timestamp& timestamp) override;
 
 private:
     std::shared_ptr<Scene> m_ActiveScene{};

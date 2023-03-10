@@ -1,17 +1,31 @@
 #pragma once
 
 #include "Renderer/RendererCore.hpp"
-
-#include <glm/glm.hpp>
+#include "Projection.hpp"
 
 NAMESPACE_BEGIN(Renderer)
 
 struct Camera
 {
-    virtual const glm::mat4& GetViewMatrix() const = 0;
-    virtual const glm::mat4& GetProjectionMatrix() const = 0;
+public:
+    std::shared_ptr<Projection> ProjectionHandle{ nullptr };
+    glm::vec3 Position{ glm::vec3(0.0f) };
+    glm::vec3 Rotation{ glm::vec3(0.0f) };
 
-    virtual const glm::vec3& GetPosition() const = 0;
+public:
+    Camera() = default;
+    Camera(std::shared_ptr<Projection> projection);
+
+    glm::mat4 CalculateViewMatrix() const;
+    glm::mat4 CalculateProjectionMatrix() const;
+
+public:
+    template<typename _Projection>
+    inline std::shared_ptr<_Projection> GetProjection() const
+    {
+        static_assert(std::is_base_of_v<Projection, _Projection>);
+        return std::dynamic_pointer_cast<_Projection>(ProjectionHandle);
+    }
 };
 
 NAMESPACE_END(Renderer)

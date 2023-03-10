@@ -4,10 +4,9 @@
 #include "Renderer/Backend/Texture2D.hpp"
 #include "Renderer/Backend/Shader.hpp"
 
-#include <spdlog/spdlog.h>
+#include "Renderer/Loaders/OBJLoader.hpp"
 
-// Temporary, include obj loading into the main framework.
-// #include "Application/OBJLoader.hpp"
+#include <spdlog/spdlog.h>
 
 NAMESPACE_BEGIN(Renderer)
 
@@ -65,6 +64,9 @@ bool Renderer3DInstance::OnInitialization() noexcept
     });
     if (!m_Storage->PlaneVArray->OnInitialize()) return false;
 
+    m_Storage->CubeVArray = LoadOBJModel("assets/models/cube.obj", FaceType::Quad);
+    if (!m_Storage->CubeVArray->OnInitialize()) return false;
+
     m_Storage->FlatTexture = AllocateResource<Texture2D>({
         .Size = { 1u, 1u, },
     });
@@ -98,9 +100,13 @@ void Renderer3DInstance::BeginScene(Camera* camera) noexcept
     m_Storage->PrimitivesCountTemp = 0u;
 
     m_Storage->FlatShader->Bind();
-    m_Storage->FlatShader->SetUniform("u_ViewMatrix", camera->GetViewMatrix());
-    m_Storage->FlatShader->SetUniform("u_ProjectionMatrix", camera->GetProjectionMatrix());
-    m_Storage->FlatShader->SetUniform("u_ViewPosition", camera->GetPosition());
+    // m_Storage->FlatShader->SetUniform("u_ViewMatrix", camera->GetViewMatrix());
+    // m_Storage->FlatShader->SetUniform("u_ProjectionMatrix", camera->GetProjectionMatrix());
+    // m_Storage->FlatShader->SetUniform("u_ViewPosition", camera->GetPosition());
+
+    m_Storage->FlatShader->SetUniform("u_ViewMatrix", camera->CalculateViewMatrix());
+    m_Storage->FlatShader->SetUniform("u_ProjectionMatrix", camera->CalculateProjectionMatrix());
+    m_Storage->FlatShader->SetUniform("u_ViewPosition", camera->Position);
 }
 
 void Renderer3DInstance::EndScene() noexcept

@@ -6,6 +6,7 @@
 UserApplication::UserApplication(const ApplicationProps& props) noexcept
     : Application{ props }
 {
+    // Application::GetWindow()->SetVSync(false);
     m_ActiveScene = std::make_shared<UserScene>(Application::GetWindow());
 }
 
@@ -32,9 +33,9 @@ void UserApplication::OnRender()
     m_ActiveScene->OnRender();
 }
 
-void UserApplication::OnImGuiRender(ImGuiIO& io)
+void UserApplication::OnImGuiRender(ImGuiIO& io, const Timestamp& timestamp)
 {
-    m_ActiveScene->OnImGuiRender(io, {});
+    m_ActiveScene->OnImGuiRender(io, timestamp);
 }
 
 std::unique_ptr<Application> CreateApplication() noexcept

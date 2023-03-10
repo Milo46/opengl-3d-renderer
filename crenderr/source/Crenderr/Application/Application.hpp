@@ -25,7 +25,7 @@ protected:
 
     virtual void OnUpdate(const Timestamp& timestamp) = 0;
     virtual void OnRender() = 0;
-    virtual void OnImGuiRender(ImGuiIO& io) = 0;
+    virtual void OnImGuiRender(ImGuiIO& io, const Timestamp& timestamp) = 0;
 
 protected:
     inline auto& GetWindow() { return m_Window; }

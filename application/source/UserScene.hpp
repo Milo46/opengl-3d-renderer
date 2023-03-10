@@ -2,6 +2,7 @@
 
 #include <Crenderr/Application/Scene.hpp>
 #include <Crenderr/Renderer/Renderer.hpp>
+#include <Crenderr/Renderer/Camera/PerspectiveProjection.hpp>
 
 class UserScene : public Scene
 {
@@ -18,7 +19,8 @@ public:
 public:
     std::unique_ptr<Renderer::Renderer3DInstance> m_RendererContext;
 
-    Renderer::PerspectiveCamera m_Camera{};
+    Renderer::Camera m_Camera{};
+    glm::vec3 m_CameraFocusPoint{ glm::vec3(0.0f) };
     float m_CameraArmLength{ 2.0f };
 
     std::shared_ptr<Renderer::VertexArray> m_Model{};
@@ -33,7 +35,6 @@ public:
     glm::vec2 m_PrevFrameCursorPos{};
     glm::vec2 m_CurrFrameCursorPos{};
 
-    float m_XAngle{ 90.0f };
-    float m_YAngle{ 0.0f };
+    glm::vec3 m_ControllerAngles{ 90.0f, 0.0f, 0.0f, };
     float m_MouseSensitivity{ 0.07f };
 };

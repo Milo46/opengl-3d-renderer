@@ -9,8 +9,6 @@
 #include "Renderer/Backend/Shader.hpp"
 
 #include "Renderer/Camera/Camera.hpp"
-#include "Renderer/Camera/OrthographicCamera.hpp"
-#include "Renderer/Camera/PerspectiveCamera.hpp"
 
 NAMESPACE_BEGIN(Renderer)
 

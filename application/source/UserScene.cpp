@@ -7,6 +7,7 @@
 #include <spdlog/spdlog.h>
 
 #include <Crenderr/ImGui/ImGuiContext.hpp>
+#include <imgui.h>
 
 std::shared_ptr<Renderer::VertexArray> CreateGrid(std::size_t slices, std::size_t gap)
 {
@@ -66,10 +67,12 @@ std::shared_ptr<Renderer::VertexArray> CreateGrid(std::size_t slices, std::size_
 UserScene::UserScene(std::unique_ptr<Window>& windowRef)
     : Scene{ windowRef },
       m_RendererContext{ std::make_unique<Renderer::Renderer3DInstance>() },
-      m_Camera{ {
-        .Position = { 0.0f, 0.0f, 2.0f, },
-        .Ratio = Scene::GetWindow()->GetAspectRatio(),
-      } } {}
+      m_Camera{ std::make_shared<Renderer::PerspectiveProjection>() }
+{
+    m_Camera.Position = { 0.0f, 0.0f, 2.0f, };
+    m_Camera.GetProjection<Renderer::PerspectiveProjection>()->Ratio = Scene::GetWindow()->GetAspectRatio();
+    m_Camera.GetProjection<Renderer::PerspectiveProjection>()->Near = 0.0001f;
+}
 
 bool UserScene::OnInit()
 {
@@ -137,13 +140,13 @@ void UserScene::OnUpdate(const Timestamp& timestamp)
         const auto delta{ m_CurrFrameCursorPos - m_PrevFrameCursorPos };
 
         {
-            m_XAngle += delta.x * m_MouseSensitivity;
-            m_YAngle += delta.y * m_MouseSensitivity;
+            m_ControllerAngles.x += delta.x * m_MouseSensitivity;
+            m_ControllerAngles.y += delta.y * m_MouseSensitivity;
 
-            if (m_XAngle < -360.0f) m_XAngle += 360.0f;
-            if (m_XAngle >  360.0f) m_XAngle -= 360.0f;
+            if (m_ControllerAngles.x < -360.0f) m_ControllerAngles.x += 360.0f;
+            if (m_ControllerAngles.x >  360.0f) m_ControllerAngles.x -= 360.0f;
 
-            m_YAngle = std::clamp(m_YAngle, -89.9f, 89.9f);
+            m_ControllerAngles.y = std::clamp(m_ControllerAngles.y, -89.9f, 89.9f);
         }
 
         double xpos{}, ypos{};
@@ -153,28 +156,36 @@ void UserScene::OnUpdate(const Timestamp& timestamp)
         m_CurrFrameCursorPos = { xpos, ypos };
     }
 
-    m_Camera.OnUpdate(Scene::GetWindow()->GetAspectRatio());
+    if (auto projection = m_Camera.GetProjection<Renderer::PerspectiveProjection>())
+        projection->Ratio = Scene::GetWindow()->GetAspectRatio();
 
     glm::vec3 newPosition{
-        m_CameraArmLength * cos(glm::radians(m_XAngle)) * cos(glm::radians(m_YAngle)),
-        m_CameraArmLength * sin(glm::radians(m_YAngle)),
-        m_CameraArmLength * sin(glm::radians(m_XAngle)) * cos(glm::radians(m_YAngle)),
+        m_CameraArmLength * cos(glm::radians(m_ControllerAngles.x)) * cos(glm::radians(m_ControllerAngles.y)),
+        m_CameraArmLength * sin(glm::radians(m_ControllerAngles.y)),
+        m_CameraArmLength * sin(glm::radians(m_ControllerAngles.x)) * cos(glm::radians(m_ControllerAngles.y)),
     };
 
-    m_Camera
-        .SetPosition(newPosition)
-        .SetLookDirection(glm::vec3(0.0f));
+    newPosition += m_CameraFocusPoint;
+
+    m_Camera.Position = newPosition;
+    m_Camera.Rotation.x = 2 * 90.0f + m_ControllerAngles.x;
+    m_Camera.Rotation.y = -m_ControllerAngles.y;
 }
 
 void UserScene::OnRender()
 {
     m_RendererContext->BeginScene(&m_Camera);
-    m_RendererContext->SetPointLight(m_Camera.GetPosition(), glm::vec3(1.0f));
+    m_RendererContext->SetPointLight(m_Camera.Position, glm::vec3(1.0f));
 
     m_Grid->Bind();
     glDrawElements(GL_LINES, m_Grid->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, nullptr);
 
     m_RendererContext->DrawArrays(m_Model, m_DiffuseMap, m_SpecularMap, m_EmissionMap);
+
+    // Renderer::Translation cubeTranslation{};
+    // cubeTranslation.Scale = glm::vec3(0.005f);
+    // cubeTranslation.Position = m_CameraFocusPoint;
+    // m_RendererContext->DrawCube(cubeTranslation, glm::vec3(0.0f));
 
     m_RendererContext->EndScene();
 }
@@ -182,10 +193,17 @@ void UserScene::OnRender()
 void UserScene::OnImGuiRender(ImGuiIO& io, const Timestamp& timestamp)
 {
     ImGui::Begin("Scene parameters");
+    ImGui::Text("Scene FPS: %f", 1.0f / timestamp.DeltaTime);
     ImGui::SliderFloat("Camera Arm Length", &m_CameraArmLength, 0.1f, 3.0f);
-    ImGui::SliderFloat("Camera X Axis Angle", &m_XAngle, -360.0f, 360.0f);
-    ImGui::SliderFloat("Camera Y Axis Angle", &m_YAngle, -89.9f, 89.9f);
+    ImGui::SliderFloat3("Camera Focus Point", glm::value_ptr(m_CameraFocusPoint), -5.0f, 5.0f);
+    ImGui::SliderFloat("Camera X Axis Angle", &m_ControllerAngles.x, -360.0f, 360.0f);
+    ImGui::SliderFloat("Camera Y Axis Angle", &m_ControllerAngles.y, -89.9f, 89.9f);
     ImGui::SliderFloat("Camera Sensitivity", &m_MouseSensitivity, 0.0f, 0.5f);
-    ImGui::Text("Camera Coordinates (x: %f, y: %f)", m_Camera.GetPosition().x, m_Camera.GetPosition().y);
+
+    static const char* projections[]{ "Orthographic", "Perspective", };
+    static int projectionIndex{ 1 };
+    ImGui::Combo("Camera Projection", &projectionIndex, projections, IM_ARRAYSIZE(projections));
+
+    ImGui::Text("Camera Coordinates (x: %f, y: %f, z: %f)", m_Camera.Position.x, m_Camera.Position.y, m_Camera.Position.z);
     ImGui::End();
 }
