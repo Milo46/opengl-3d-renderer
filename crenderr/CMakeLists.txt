@@ -32,8 +32,8 @@ add_library(${PROJECT_NAME} STATIC
     source/Crenderr/Renderer/Backend/Shader.cpp
 
     source/Crenderr/Renderer/Camera/Camera.cpp
-    source/Crenderr/Renderer/Camera/OrthographicProjection.cpp
-    source/Crenderr/Renderer/Camera/PerspectiveProjection.cpp
+    source/Crenderr/Renderer/Camera/Projections/Orthographic.cpp
+    source/Crenderr/Renderer/Camera/Projections/Perspective.cpp
 
     source/Crenderr/Renderer/Loaders/OBJLoader.cpp
 

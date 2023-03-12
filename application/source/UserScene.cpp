@@ -68,7 +68,14 @@ UserScene::UserScene(std::unique_ptr<Window>& windowRef)
     : Scene{ windowRef },
       m_RendererContext{ std::make_unique<Renderer::Renderer3DInstance>() },
       m_Camera{ std::make_shared<Renderer::PerspectiveProjection>() }
+    //   m_OrbitController{}
 {
+    // m_OrbitController.Camera.ProjectionHandle = std::make_shared<Renderer::PerspectiveProjection>();
+
+    // m_OrbitController.Camera.Position = { 0.0f, 0.0f, 2.0f, };
+    // m_OrbitController.Camera.GetProjection<Renderer::PerspectiveProjection>()->Ratio = Scene::GetWindow()->GetAspectRatio();
+    // m_OrbitController.Camera.GetProjection<Renderer::PerspectiveProjection>()->Near  = 0.0001f;
+
     m_Camera.Position = { 0.0f, 0.0f, 2.0f, };
     m_Camera.GetProjection<Renderer::PerspectiveProjection>()->Ratio = Scene::GetWindow()->GetAspectRatio();
     m_Camera.GetProjection<Renderer::PerspectiveProjection>()->Near = 0.0001f;
@@ -100,6 +107,8 @@ bool UserScene::OnInit()
     });
     if (!m_EmissionMap->OnInitialize()) return false;
     m_EmissionMap->Unbind();
+
+    // m_OrbitController.Capture();
 
     return true;
 }
@@ -168,7 +177,7 @@ void UserScene::OnUpdate(const Timestamp& timestamp)
     newPosition += m_CameraFocusPoint;
 
     m_Camera.Position = newPosition;
-    m_Camera.Rotation.x = 2 * 90.0f + m_ControllerAngles.x;
+    // m_Camera.Rotation.x = 2 * 90.0f + m_ControllerAngles.x;
     m_Camera.Rotation.y = -m_ControllerAngles.y;
 }
 

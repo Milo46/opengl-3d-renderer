@@ -2,7 +2,9 @@
 
 #include <Crenderr/Application/Scene.hpp>
 #include <Crenderr/Renderer/Renderer.hpp>
-#include <Crenderr/Renderer/Camera/PerspectiveProjection.hpp>
+
+#include <Crenderr/Renderer/Camera/Projections/Perspective.hpp>
+// #include <Crenderr/Renderer/Camera/Controllers/CameraController.hpp>
 
 class UserScene : public Scene
 {
@@ -18,6 +20,8 @@ public:
 
 public:
     std::unique_ptr<Renderer::Renderer3DInstance> m_RendererContext;
+
+    // Renderer::CameraOrbitController m_OrbitController{};
 
     Renderer::Camera m_Camera{};
     glm::vec3 m_CameraFocusPoint{ glm::vec3(0.0f) };

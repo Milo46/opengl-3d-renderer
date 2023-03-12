@@ -1,5 +1,5 @@
-#include "OrthographicProjection.hpp"
-#include "Camera.hpp"
+#include "Orthographic.hpp"
+#include "Renderer/Camera/Camera.hpp"
 
 #include <glm/gtc/matrix_transform.hpp>
 

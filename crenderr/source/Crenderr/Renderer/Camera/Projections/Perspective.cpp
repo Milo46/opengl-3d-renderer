@@ -1,5 +1,5 @@
-#include "PerspectiveProjection.hpp"
-#include "Camera.hpp"
+#include "Perspective.hpp"
+#include "Renderer/Camera/Camera.hpp"
 
 #include <glm/gtc/matrix_transform.hpp>
 
