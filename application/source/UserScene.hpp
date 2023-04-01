@@ -4,6 +4,7 @@
 #include <Crenderr/Renderer/Renderer.hpp>
 
 #include <Crenderr/Renderer/Camera/Projections/Perspective.hpp>
+#include <Crenderr/Renderer/Camera/Projections/Orthographic.hpp>
 // #include <Crenderr/Renderer/Camera/Controllers/CameraController.hpp>
 
 class UserScene : public Scene
@@ -18,8 +19,15 @@ public:
     virtual void OnRender() override;
     virtual void OnImGuiRender(ImGuiIO& io, const Timestamp& timestamp) override;
 
-public:
+private:
+    void RenderSingleViewport();
+    void RenderDoubleViewport();
+
+    void RenderViewport();
+
+private:
     std::unique_ptr<Renderer::Renderer3DInstance> m_RendererContext;
+    bool m_RenderDoubleViewport{ false };
 
     // Renderer::CameraOrbitController m_OrbitController{};
 

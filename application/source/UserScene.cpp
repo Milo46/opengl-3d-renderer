@@ -77,8 +77,8 @@ UserScene::UserScene(std::unique_ptr<Window>& windowRef)
     // m_OrbitController.Camera.GetProjection<Renderer::PerspectiveProjection>()->Near  = 0.0001f;
 
     m_Camera.Position = { 0.0f, 0.0f, 2.0f, };
-    m_Camera.GetProjection<Renderer::PerspectiveProjection>()->Ratio = Scene::GetWindow()->GetAspectRatio();
-    m_Camera.GetProjection<Renderer::PerspectiveProjection>()->Near = 0.0001f;
+    // m_Camera.GetProjection<Renderer::PerspectiveProjection>()->Ratio = Scene::GetWindow()->GetAspectRatio();
+    // m_Camera.GetProjection<Renderer::PerspectiveProjection>()->Near = 0.0001f;
 }
 
 bool UserScene::OnInit()
@@ -177,11 +177,38 @@ void UserScene::OnUpdate(const Timestamp& timestamp)
     newPosition += m_CameraFocusPoint;
 
     m_Camera.Position = newPosition;
-    // m_Camera.Rotation.x = 2 * 90.0f + m_ControllerAngles.x;
+    m_Camera.Rotation.x = 2 * 90.0f + m_ControllerAngles.x;
     m_Camera.Rotation.y = -m_ControllerAngles.y;
 }
 
 void UserScene::OnRender()
+{
+    (m_RenderDoubleViewport
+        ? UserScene::RenderDoubleViewport()
+        : UserScene::RenderSingleViewport());
+}
+
+void UserScene::RenderSingleViewport()
+{
+    const auto& windowSize{ Scene::GetWindow()->GetSize() };
+    Renderer::RenderCommand::SetViewport(0, 0, windowSize.x, windowSize.y);
+    UserScene::RenderViewport();
+}
+
+void UserScene::RenderDoubleViewport()
+{
+    const auto& windowSize{ Scene::GetWindow()->GetSize() };
+
+    m_Camera.ProjectionHandle = std::make_shared<Renderer::PerspectiveProjection>();
+    Renderer::RenderCommand::SetViewport(0, 0, windowSize.x / 2, windowSize.y);
+    UserScene::RenderViewport();
+
+    m_Camera.ProjectionHandle = std::make_shared<Renderer::OrthographicProjection>();
+    Renderer::RenderCommand::SetViewport(windowSize.x / 2, 0, windowSize.x / 2, windowSize.y);
+    UserScene::RenderViewport();
+}
+
+void UserScene::RenderViewport()
 {
     m_RendererContext->BeginScene(&m_Camera);
     m_RendererContext->SetPointLight(m_Camera.Position, glm::vec3(1.0f));
@@ -190,11 +217,6 @@ void UserScene::OnRender()
     glDrawElements(GL_LINES, m_Grid->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, nullptr);
 
     m_RendererContext->DrawArrays(m_Model, m_DiffuseMap, m_SpecularMap, m_EmissionMap);
-
-    // Renderer::Translation cubeTranslation{};
-    // cubeTranslation.Scale = glm::vec3(0.005f);
-    // cubeTranslation.Position = m_CameraFocusPoint;
-    // m_RendererContext->DrawCube(cubeTranslation, glm::vec3(0.0f));
 
     m_RendererContext->EndScene();
 }
@@ -211,7 +233,24 @@ void UserScene::OnImGuiRender(ImGuiIO& io, const Timestamp& timestamp)
 
     static const char* projections[]{ "Orthographic", "Perspective", };
     static int projectionIndex{ 1 };
-    ImGui::Combo("Camera Projection", &projectionIndex, projections, IM_ARRAYSIZE(projections));
+    if (ImGui::Combo("Camera Projection", &projectionIndex, projections, IM_ARRAYSIZE(projections)))
+    {
+        if (projectionIndex == 0)
+        {
+            spdlog::info("Set Orthographic Projection!");
+            m_Camera.ProjectionHandle = std::make_shared<Renderer::OrthographicProjection>();
+        }
+        else if (projectionIndex == 1)
+        {
+            spdlog::info("Set Perspective Projection!");
+            m_Camera.ProjectionHandle = std::make_shared<Renderer::PerspectiveProjection>();
+        }
+    }
+
+    // if (ImGui::Checkbox("Double Viewport", &m_RenderDoubleViewport))
+    // {
+    //     spdlog::info("WHAhawhaw");
+    // }
 
     ImGui::Text("Camera Coordinates (x: %f, y: %f, z: %f)", m_Camera.Position.x, m_Camera.Position.y, m_Camera.Position.z);
     ImGui::End();
