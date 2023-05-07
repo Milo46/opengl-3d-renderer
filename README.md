@@ -15,8 +15,6 @@ Requirements:
 ```bash
 git clone https://github.com/milo46/opengl-3d-renderer --recursive &&
 cd opengl-3d-renderer &&
-mkdir build &&
-cd build &&
-cmake .. &&
-cmake --build (and idk yet what should come here...)
+cmake -S . -B build &&
+cmake --build build
 ```
