@@ -94,19 +94,16 @@ bool UserScene::OnInit()
         .Filepath = "assets/textures/spaceship/diffuse_map.jpg",
     });
     if (!m_DiffuseMap->OnInitialize()) return false;
-    m_DiffuseMap->Unbind();
 
     m_SpecularMap = Renderer::AllocateResource<Renderer::Texture2D>({
         .Filepath = "assets/textures/spaceship/specular_map.jpg",
     });
     if (!m_SpecularMap->OnInitialize()) return false;
-    m_SpecularMap->Unbind();
 
     m_EmissionMap = Renderer::AllocateResource<Renderer::Texture2D>({
         .Filepath = "assets/textures/spaceship/emissive_map.jpg",
     });
     if (!m_EmissionMap->OnInitialize()) return false;
-    m_EmissionMap->Unbind();
 
     // m_OrbitController.Capture();
 

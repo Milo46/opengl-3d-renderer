@@ -53,24 +53,11 @@ public:
         bool wireframe = false);
 
 public:
-    std::unique_ptr<Renderer3DStorage> m_Storage{};
+    // std::unique_ptr<Renderer3DStorage> m_Storage;
+    Renderer3DStorage* m_Storage{};
 };
 
 template<typename _Ty>
 using ResourceHandle = std::shared_ptr<_Ty>;
-
-struct Renderer3DStorage
-{
-    ResourceHandle<VertexArray> PlaneVArray{};
-    ResourceHandle<VertexArray> CubeVArray{};
-    
-    ResourceHandle<Shader> FlatShader{};
-
-    ResourceHandle<Texture2D> FlatTexture{};
-    ResourceHandle<Texture2D> CubeTexture{};
-
-    std::size_t PrimitivesCount{ 0u };
-    std::size_t PrimitivesCountTemp{ 0u };
-};
 
 NAMESPACE_END(Renderer)

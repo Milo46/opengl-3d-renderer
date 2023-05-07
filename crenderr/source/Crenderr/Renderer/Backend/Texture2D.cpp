@@ -20,23 +20,21 @@ Texture2D::Texture2D(const Texture2DProps& props)
 
 Texture2D::~Texture2D()
 {
-    if (m_RendererID != c_EmptyValue<RendererID>)
-        glDeleteTextures(1, &m_RendererID);
+    glDeleteTextures(1, &m_RendererID);
 }
 
 bool Texture2D::OnInitialize() noexcept
 {
     if (m_RendererID != c_EmptyValue<RendererID>)
         glDeleteTextures(1, &m_RendererID);
-    
+
     glCreateTextures(GL_TEXTURE_2D, 1, &m_RendererID);
-    glBindTexture(GL_TEXTURE_2D, { m_RendererID });
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, { static_cast<GLint>(m_Wrapping) });
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, { static_cast<GLint>(m_Wrapping) });
+    glTextureParameteri(m_RendererID, GL_TEXTURE_WRAP_S, { static_cast<GLint>(m_Wrapping) });
+    glTextureParameteri(m_RendererID, GL_TEXTURE_WRAP_T, { static_cast<GLint>(m_Wrapping) });
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, { static_cast<GLint>(m_Filtering) });
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, { static_cast<GLint>(m_Filtering) });
+    glTextureParameteri(m_RendererID, GL_TEXTURE_MIN_FILTER, { static_cast<GLint>(m_Filtering) });
+    glTextureParameteri(m_RendererID, GL_TEXTURE_MAG_FILTER, { static_cast<GLint>(m_Filtering) });
 
     if (!m_Filepath.empty())
     {
@@ -65,21 +63,22 @@ bool Texture2D::OnInitialize() noexcept
         // glGenerateMipmap(GL_TEXTURE_2D);
 
         // #2. Maybe better method.
-        glTextureStorage2D({ m_RendererID }, 1, { internalFormat }, { width }, { height });
-        glTextureSubImage2D({ m_RendererID }, 0, 0, 0, { width }, { height }, { dataFormat }, GL_UNSIGNED_BYTE, data);
-        // glGenerateMipmap(GL_TEXTURE_2D);
+        glTextureStorage2D(m_RendererID, 1, { internalFormat }, { width }, { height });
+        glTextureSubImage2D(m_RendererID, 0, 0, 0, { width }, { height }, { dataFormat }, GL_UNSIGNED_BYTE, data);
+        // glGenerateTextureMipmap(m_RendererID);
 
         stbi_image_free(data);
     }
     else
     {
-        const auto dataSize{ static_cast<std::size_t>(m_Size.x * m_Size.y * 4u) };
-        auto data = new unsigned char[dataSize]{};
-        std::fill(data, data + static_cast<std::ptrdiff_t>(dataSize), 255u);
+        const auto dataSize { static_cast<std::size_t>(m_Size.x * m_Size.y * 4u) };
+        const auto dataValue{ static_cast<std::uint8_t>(255u) };
+
+        std::vector<unsigned char> data(dataSize, dataValue);
 
         glTextureStorage2D(m_RendererID, 1, { c_InternalFormat }, { static_cast<int>(m_Size.x) }, { static_cast<int>(m_Size.y) });
-        glTextureSubImage2D(m_RendererID, 0, 0, 0, { static_cast<int>(m_Size.x) }, { static_cast<int>(m_Size.y) }, { c_DataFormat }, GL_UNSIGNED_BYTE, data);
-        // glGenerateMipmap(GL_TEXTURE_2D);
+        glTextureSubImage2D(m_RendererID, 0, 0, 0, { static_cast<int>(m_Size.x) }, { static_cast<int>(m_Size.y) }, { c_DataFormat }, GL_UNSIGNED_BYTE, data.data());
+        // glGenerateTextureMipmap(m_RendererID);
     }
 
     return true;

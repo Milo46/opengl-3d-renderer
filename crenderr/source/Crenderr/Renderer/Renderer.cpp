@@ -10,6 +10,20 @@
 
 NAMESPACE_BEGIN(Renderer)
 
+struct Renderer3DStorage
+{
+    ResourceHandle<VertexArray> PlaneVArray{};
+    ResourceHandle<VertexArray> CubeVArray{};
+    
+    ResourceHandle<Shader> FlatShader{};
+
+    ResourceHandle<Texture2D> FlatTexture{};
+    ResourceHandle<Texture2D> CubeTexture{};
+
+    std::size_t PrimitivesCount{ 0u };
+    std::size_t PrimitivesCountTemp{ 0u };
+};
+
 const std::shared_ptr<Shader>& Renderer3DInstance::GetFlatShader() const noexcept
 {
     return m_Storage->FlatShader;
@@ -22,13 +36,15 @@ std::size_t Renderer3DInstance::GetPrimitivesRendered() const noexcept
 
 bool Renderer3DInstance::OnInitialization() noexcept
 {
-    if (m_Storage.get())
+    // if (m_Storage.get())
+    if (m_Storage)
     {
         spdlog::warn("The current instance of a Renderer3D is already initialized!");
         return true;
     }
 
-    m_Storage = std::make_unique<Renderer3DStorage>();
+    // m_Storage = std::make_unique<Renderer3DStorage>();
+    m_Storage = new Renderer3DStorage{};
 
     const std::array<Vertex3D, 4u> rectangleVertices = { {
         // position                 normal                  texcoord
@@ -92,7 +108,8 @@ bool Renderer3DInstance::OnInitialization() noexcept
 
 void Renderer3DInstance::OnShutdown() noexcept
 {
-    m_Storage.~unique_ptr();
+    // m_Storage.~unique_ptr();
+    delete m_Storage;
 }
 
 void Renderer3DInstance::BeginScene(Camera* camera) noexcept
@@ -100,10 +117,6 @@ void Renderer3DInstance::BeginScene(Camera* camera) noexcept
     m_Storage->PrimitivesCountTemp = 0u;
 
     m_Storage->FlatShader->Bind();
-    // m_Storage->FlatShader->SetUniform("u_ViewMatrix", camera->GetViewMatrix());
-    // m_Storage->FlatShader->SetUniform("u_ProjectionMatrix", camera->GetProjectionMatrix());
-    // m_Storage->FlatShader->SetUniform("u_ViewPosition", camera->GetPosition());
-
     m_Storage->FlatShader->SetUniform("u_ViewMatrix", camera->CalculateViewMatrix());
     m_Storage->FlatShader->SetUniform("u_ProjectionMatrix", camera->CalculateProjectionMatrix());
     m_Storage->FlatShader->SetUniform("u_ViewPosition", camera->Position);
