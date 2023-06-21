@@ -7,7 +7,6 @@
 #include <spdlog/spdlog.h>
 
 #include <Crenderr/ImGui/ImGuiContext.hpp>
-#include <imgui.h>
 
 std::shared_ptr<Renderer::VertexArray> CreateGrid(std::size_t slices, std::size_t gap)
 {
@@ -66,8 +65,8 @@ std::shared_ptr<Renderer::VertexArray> CreateGrid(std::size_t slices, std::size_
 
 UserScene::UserScene(std::unique_ptr<Window>& windowRef)
     : Scene{ windowRef },
-      m_RendererContext{ std::make_unique<Renderer::Renderer3DInstance>() },
-      m_Camera{ std::make_shared<Renderer::PerspectiveProjection>() }
+      m_RendererContext{ std::make_unique<Renderer::Renderer3DInstance>() }
+    //   m_Camera{ std::make_shared<Renderer::PerspectiveProjection>() }
     //   m_OrbitController{}
 {
     // m_OrbitController.Camera.ProjectionHandle = std::make_shared<Renderer::PerspectiveProjection>();
@@ -76,9 +75,17 @@ UserScene::UserScene(std::unique_ptr<Window>& windowRef)
     // m_OrbitController.Camera.GetProjection<Renderer::PerspectiveProjection>()->Ratio = Scene::GetWindow()->GetAspectRatio();
     // m_OrbitController.Camera.GetProjection<Renderer::PerspectiveProjection>()->Near  = 0.0001f;
 
-    m_Camera.Position = { 0.0f, 0.0f, 2.0f, };
+    // m_Camera.Position = { 0.0f, 0.0f, 2.0f, };
     // m_Camera.GetProjection<Renderer::PerspectiveProjection>()->Ratio = Scene::GetWindow()->GetAspectRatio();
     // m_Camera.GetProjection<Renderer::PerspectiveProjection>()->Near = 0.0001f;
+
+    m_OrbitController.FocusCenter = { 0.0f, 0.0f, 0.0f, };
+    m_OrbitController.FocusRadius = 2.0f;
+    m_OrbitController.Angles.x = 90.0f;
+
+    // m_Camera = m_OrbitController.CameraHandle;
+    m_Camera.ProjectionHandle = std::make_shared<Renderer::PerspectiveProjection>();
+    m_Camera.Position = { 0.0f, 0.0f, 2.0f, };
 }
 
 bool UserScene::OnInit()
@@ -105,77 +112,79 @@ bool UserScene::OnInit()
     });
     if (!m_EmissionMap->OnInitialize()) return false;
 
-    // m_OrbitController.Capture();
-
     return true;
 }
 
 void UserScene::OnUpdate(const Timestamp& timestamp)
 {
-    { //glfw-code-begin
+    // { //glfw-code-begin
 
-        // Prevents from imgui and mouse capture conflict.
-        if (!ImGui::GetIO().WantCaptureMouse)
-        {
-            GLFWwindow* window{ Scene::GetWindow()->GetNativeWindow() };
+    //     // Prevents from imgui and mouse capture conflict.
+    //     if (!ImGui::GetIO().WantCaptureMouse)
+    //     {
+    //         GLFWwindow* window{ Scene::GetWindow()->GetNativeWindow() };
 
-            if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS && !m_IsFirstCaptureFrame)
-            {
-                m_IsFirstCaptureFrame = true;
+    //         if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS && !m_IsFirstCaptureFrame)
+    //         {
+    //             m_IsFirstCaptureFrame = true;
 
-                glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-                m_IsMouseCaptured = true;
+    //             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    //             m_IsMouseCaptured = true;
 
-                double xpos{}, ypos{};
-                glfwGetCursorPos(window, &xpos, &ypos);
-                m_PrevFrameCursorPos = { xpos, ypos, };
-                m_CurrFrameCursorPos = { xpos, ypos, };
-            }
+    //             double xpos{}, ypos{};
+    //             glfwGetCursorPos(window, &xpos, &ypos);
+    //             m_PrevFrameCursorPos = { xpos, ypos, };
+    //             m_CurrFrameCursorPos = { xpos, ypos, };
+    //         }
 
-            if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE)
-            {
-                glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-                m_IsMouseCaptured = false;
-                m_IsFirstCaptureFrame = false;
-            }
-        }
-    } //glfw-code-end
+    //         if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE)
+    //         {
+    //             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    //             m_IsMouseCaptured = false;
+    //             m_IsFirstCaptureFrame = false;
+    //         }
+    //     }
+    // } //glfw-code-end
 
-    if (m_IsMouseCaptured)
-    {
-        const auto delta{ m_CurrFrameCursorPos - m_PrevFrameCursorPos };
+    // if (m_IsMouseCaptured)
+    // {
+    //     const auto delta{ m_CurrFrameCursorPos - m_PrevFrameCursorPos };
 
-        {
-            m_ControllerAngles.x += delta.x * m_MouseSensitivity;
-            m_ControllerAngles.y += delta.y * m_MouseSensitivity;
+    //     {
+    //         m_ControllerAngles.x += delta.x * m_MouseSensitivity;
+    //         m_ControllerAngles.y += delta.y * m_MouseSensitivity;
 
-            if (m_ControllerAngles.x < -360.0f) m_ControllerAngles.x += 360.0f;
-            if (m_ControllerAngles.x >  360.0f) m_ControllerAngles.x -= 360.0f;
+    //         if (m_ControllerAngles.x < -360.0f) m_ControllerAngles.x += 360.0f;
+    //         if (m_ControllerAngles.x >  360.0f) m_ControllerAngles.x -= 360.0f;
 
-            m_ControllerAngles.y = std::clamp(m_ControllerAngles.y, -89.9f, 89.9f);
-        }
+    //         m_ControllerAngles.y = std::clamp(m_ControllerAngles.y, -89.9f, 89.9f);
+    //     }
 
-        double xpos{}, ypos{};
-        glfwGetCursorPos(Scene::GetWindow()->GetNativeWindow(), &xpos, &ypos);
+    //     double xpos{}, ypos{};
+    //     glfwGetCursorPos(Scene::GetWindow()->GetNativeWindow(), &xpos, &ypos);
 
-        m_PrevFrameCursorPos = m_CurrFrameCursorPos;
-        m_CurrFrameCursorPos = { xpos, ypos };
-    }
+    //     m_PrevFrameCursorPos = m_CurrFrameCursorPos;
+    //     m_CurrFrameCursorPos = { xpos, ypos };
+    // }
 
+    // Link the aspect ratio updating with the camera event system!
     if (auto projection = m_Camera.GetProjection<Renderer::PerspectiveProjection>())
         projection->Ratio = Scene::GetWindow()->GetAspectRatio();
 
-    glm::vec3 newPosition{
-        m_CameraArmLength * cos(glm::radians(m_ControllerAngles.x)) * cos(glm::radians(m_ControllerAngles.y)),
-        m_CameraArmLength * sin(glm::radians(m_ControllerAngles.y)),
-        m_CameraArmLength * sin(glm::radians(m_ControllerAngles.x)) * cos(glm::radians(m_ControllerAngles.y)),
-    };
+    // glm::vec3 newPosition{
+    //     m_CameraArmLength * cos(glm::radians(m_ControllerAngles.x)) * cos(glm::radians(m_ControllerAngles.y)),
+    //     m_CameraArmLength * sin(glm::radians(m_ControllerAngles.y)),
+    //     m_CameraArmLength * sin(glm::radians(m_ControllerAngles.x)) * cos(glm::radians(m_ControllerAngles.y)),
+    // };
 
-    newPosition += m_CameraFocusPoint;
+    // newPosition += m_CameraFocusPoint;
 
-    m_Camera.Position = newPosition;
-    m_Camera.Rotation.x = 2 * 90.0f + m_ControllerAngles.x;
-    m_Camera.Rotation.y = -m_ControllerAngles.y;
+    // m_Camera.Position = newPosition;
+    // m_Camera.Rotation.x = 2 * 90.0f + m_ControllerAngles.x;
+    // m_Camera.Rotation.y = -m_ControllerAngles.y;
+
+    GLFWwindow* window{ Scene::GetWindow()->GetNativeWindow() };
+    m_OrbitController.OnUpdate(window);
 }
 
 void UserScene::OnRender()
@@ -222,11 +231,11 @@ void UserScene::OnImGuiRender(ImGuiIO& io, const Timestamp& timestamp)
 {
     ImGui::Begin("Scene parameters");
     ImGui::Text("Scene FPS: %f", 1.0f / timestamp.DeltaTime);
-    ImGui::SliderFloat("Camera Arm Length", &m_CameraArmLength, 0.1f, 3.0f);
-    ImGui::SliderFloat3("Camera Focus Point", glm::value_ptr(m_CameraFocusPoint), -5.0f, 5.0f);
-    ImGui::SliderFloat("Camera X Axis Angle", &m_ControllerAngles.x, -360.0f, 360.0f);
-    ImGui::SliderFloat("Camera Y Axis Angle", &m_ControllerAngles.y, -89.9f, 89.9f);
-    ImGui::SliderFloat("Camera Sensitivity", &m_MouseSensitivity, 0.0f, 0.5f);
+    ImGui::SliderFloat("Camera Arm Length", &m_OrbitController.FocusRadius, 0.1f, 3.0f);
+    ImGui::SliderFloat3("Camera Focus Point", glm::value_ptr(m_OrbitController.FocusCenter), -5.0f, 5.0f);
+    ImGui::SliderFloat("Camera X Axis Angle", &m_OrbitController.Angles.x, -360.0f, 360.0f);
+    ImGui::SliderFloat("Camera Y Axis Angle", &m_OrbitController.Angles.y, -89.9f, 89.9f);
+    ImGui::SliderFloat("Camera Sensitivity", &m_OrbitController.Sensitivity, 0.0f, 0.5f);
 
     static const char* projections[]{ "Orthographic", "Perspective", };
     static int projectionIndex{ 1 };

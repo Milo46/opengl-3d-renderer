@@ -5,7 +5,7 @@
 
 NAMESPACE_BEGIN(Renderer)
 
-struct Camera
+class Camera
 {
 public:
     std::shared_ptr<Projection> ProjectionHandle{ nullptr };
