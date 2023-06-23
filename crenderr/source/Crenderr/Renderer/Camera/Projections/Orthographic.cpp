@@ -40,8 +40,8 @@ glm::mat4 OrthographicProjection::CalculateViewMatrix(const Camera* const camera
 
 glm::mat4 OrthographicProjection::CalculateProjectionMatrix() const
 {
-    // return glm::ortho(Left, Right, Bottom, Right);
-    return glm::ortho(-1.f, 1.f, -1.f, 1.f, -100.0f, 100.0f);
+    return glm::ortho(Left / Zoom, Right / Zoom, Bottom / Zoom, Right / Zoom, -100.0f, 100.0f);
+    // return glm::ortho(-1.f, 1.f, -1.f, 1.f, -100.0f, 100.0f);
 }
 
 NAMESPACE_END(Renderer)
